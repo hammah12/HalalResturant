@@ -2,26 +2,13 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from './supabaseClient';
 import Navbar from './components/Navbar';
+import HeroSection from './components/HeroSection';
 import RestaurantList from './components/RestaurantList';
 import RestaurantDetailModal from './components/RestaurantDetailModal';
 import AuthModal from './components/AuthModal';
 import AddRestaurantModal from './components/AddRestaurantModal';
 
 const App = () => {
-   
-   const HeroSection = () => {
-  return (
-    <div className="relative text-center text-white py-20" style={{ backgroundImage: 'url(https://halalfoundation.org/wp-content/uploads/2024/04/halal-food-1080x620.jpg/1200x400)', backgroundSize: 'cover' }}>
-      <div className="bg-black bg-opacity-50 p-10 rounded-lg">
-        <h1 className="text-5xl font-extrabold">Find the Best Halal Food in Your City</h1>
-        <p className="text-lg mt-4">Discover, rate, and share your favorite halal restaurants.</p>
-        <button className="mt-6 px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg shadow-md transition-all">
-          Explore Now
-        </button>
-      </div>
-    </div>
-  );
-};
   // ---------------------------
   // State for Restaurants Listing
   // ---------------------------
@@ -59,6 +46,15 @@ const App = () => {
   // useEffect: Check Auth & Fetch Restaurants
   // ---------------------------
   useEffect(() => {
+    const fetchRestaurants = async () => {
+      const { data, error } = await supabase.from('restaurants').select('*');
+      if (error) {
+        console.error("Error fetching restaurants:", error);
+      } else {
+        setRestaurants(data);
+      }
+    };
+
     const getSession = async () => {
       const { data: { session }, error } = await supabase.auth.getSession();
       if (error) {
@@ -67,27 +63,18 @@ const App = () => {
         setUser(session?.user ?? null);
       }
     };
+
     getSession();
+    fetchRestaurants();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setUser(session?.user ?? null);
     });
 
-    fetchRestaurants();
-
     return () => {
       subscription.unsubscribe();
     };
   }, []);
-
-  const fetchRestaurants = async () => {
-    const { data, error } = await supabase.from('restaurants').select('*');
-    if (error) {
-      console.error("Error fetching restaurants:", error);
-    } else {
-      setRestaurants(data);
-    }
-  };
 
   // ---------------------------
   // Authentication Handlers
@@ -171,6 +158,7 @@ const App = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Navbar */}
       <Navbar 
         user={user}
         onAddRestaurant={() => setShowAddModal(true)}
@@ -178,11 +166,17 @@ const App = () => {
         onSignIn={() => setShowAuthModal(true)}
       />
 
+      {/* Hero Section */}
+      <HeroSection />
+
+      {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
         <div className="mb-8">
           <h2 className="text-4xl font-extrabold text-center text-gray-800 mb-6">
             Halal Restaurants in Chicago
           </h2>
+
+          {/* Search & Filters */}
           <div className="flex flex-wrap gap-4 justify-center mb-6">
             <input
               type="text"
@@ -211,42 +205,13 @@ const App = () => {
             </select>
           </div>
 
+          {/* Restaurant List */}
           <RestaurantList 
             restaurants={filteredRestaurants}
             onSelectRestaurant={(restaurant) => setSelectedRestaurant(restaurant)}
           />
         </div>
       </main>
-
-      {selectedRestaurant && (
-        <RestaurantDetailModal 
-          restaurant={selectedRestaurant} 
-          onClose={() => setSelectedRestaurant(null)}
-        />
-      )}
-
-      {showAuthModal && (
-        <AuthModal 
-          authMode={authMode}
-          email={email}
-          setEmail={setEmail}
-          password={password}
-          setPassword={setPassword}
-          onSignIn={handleSignIn}
-          onSignUp={handleSignUp}
-          onClose={() => setShowAuthModal(false)}
-          toggleAuthMode={() => setAuthMode(authMode === "signin" ? "signup" : "signin")}
-        />
-      )}
-
-      {showAddModal && (
-        <AddRestaurantModal 
-          newRestaurant={newRestaurant}
-          handleNewRestaurantChange={handleNewRestaurantChange}
-          onAddRestaurant={handleAddRestaurant}
-          onClose={() => setShowAddModal(false)}
-        />
-      )}
     </div>
   );
 };
