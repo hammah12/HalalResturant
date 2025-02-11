@@ -296,4 +296,133 @@ const App = () => {
               onChange={handleNewRestaurantChange}
               className="block w-full mb-2 p-2 border border-gray-300 rounded"
             />
-            <se
+            <select
+              name="halalStatus"
+              value={newRestaurant.halalStatus}
+              onChange={handleNewRestaurantChange}
+              className="block w-full mb-2 p-2 border border-gray-300 rounded"
+            >
+              <option value="">Select Halal Type</option>
+              <option value="HMS">HMS</option>
+              <option value="HFSAA">HFSAA</option>
+              <option value="Self-Reported">Self-Reported</option>
+            </select>
+            <input
+              type="text"
+              name="google"
+              placeholder="Google Maps URL"
+              value={newRestaurant.google}
+              onChange={handleNewRestaurantChange}
+              className="block w-full mb-2 p-2 border border-gray-300 rounded"
+            />
+            <input
+              type="text"
+              name="hours"
+              placeholder="Hours"
+              value={newRestaurant.hours}
+              onChange={handleNewRestaurantChange}
+              className="block w-full mb-2 p-2 border border-gray-300 rounded"
+            />
+            <input
+              type="text"
+              name="phone"
+              placeholder="Phone"
+              value={newRestaurant.phone}
+              onChange={handleNewRestaurantChange}
+              className="block w-full mb-4 p-2 border border-gray-300 rounded"
+            />
+            <button
+              onClick={handleAddRestaurant}
+              className="bg-blue-600 text-white px-4 py-2 rounded"
+            >
+              Add Restaurant
+            </button>
+          </div>
+
+          {/* Restaurant Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {filteredRestaurants.map((restaurant) => (
+              <Card
+                key={restaurant.id}
+                className="bg-gray-100 shadow-xl rounded-xl overflow-hidden transform transition-transform duration-300 hover:scale-105"
+              >
+                <CardContent className="p-6">
+                  <CardTitle
+                    className="text-3xl font-extrabold mb-3 text-transparent bg-clip-text bg-gradient-to-r from-yellow-500 to-pink-600 cursor-pointer"
+                    onClick={() => handleViewDetails(restaurant)}
+                  >
+                    {restaurant.name}
+                  </CardTitle>
+                  <CardDescription className="text-gray-700 mb-2">
+                    {restaurant.description}
+                  </CardDescription>
+                  <p className="text-gray-600 mb-4">{restaurant.address}</p>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center">
+                      <span className="text-yellow-500 mr-2">★</span>
+                      <span className="text-gray-800 text-lg">
+                        {restaurant.rating}
+                      </span>
+                    </div>
+                    <span
+                      className={`text-sm font-semibold py-1 px-2 rounded-full ${
+                        restaurant.halalStatus === 'HMS'
+                          ? 'bg-green-600 text-white'
+                          : restaurant.halalStatus === 'HFSAA'
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-orange-600 text-white'
+                      }`}
+                    >
+                      {restaurant.halalStatus}
+                    </span>
+                  </div>
+                  {restaurant.google && (
+                    <a
+                      href={restaurant.google}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-500 underline mt-2"
+                    >
+                      View on Google
+                    </a>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {/* Modal for Selected Restaurant Details */}
+          {selectedRestaurant && (
+            <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+              <div className="bg-white rounded-lg p-8 max-w-md w-full">
+                <h2 className="text-3xl font-bold mb-4">
+                  {selectedRestaurant.name}
+                </h2>
+                <p className="text-gray-700 mb-2">
+                  {selectedRestaurant.description}
+                </p>
+                <p className="text-gray-600 mb-2">
+                  {selectedRestaurant.address}
+                </p>
+                <p className="text-gray-600 mb-2">
+                  {selectedRestaurant.hours}
+                </p>
+                <p className="text-gray-600 mb-4">
+                  {selectedRestaurant.phone}
+                </p>
+                <button
+                  onClick={() => setSelectedRestaurant(null)}
+                  className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+};
+
+export default App;
