@@ -1,6 +1,6 @@
 // App.js
 import React, { useEffect, useState } from 'react';
-import { supabase } from './supabaseClient'; // Ensure this path is correct
+import { supabase } from './supabaseClient'; // Make sure this is correct
 import Card from './components/Card';
 import CardTitle from './components/CardTitle';
 import CardDescription from './components/CardDescription';
@@ -41,17 +41,35 @@ const App = () => {
   // useEffect: Check auth & fetch data
   // ---------------------------
   useEffect(() => {
-    // Check current auth session
-    const session = supabase.auth.session();
-    setUser(session?.user ?? null);
+    // 1) Get current session once
+    const getSession = async () => {
+      const {
+        data: { session },
+        error,
+      } = await supabase.auth.getSession();
 
-    // Listen for auth changes (login/logout)
-    supabase.auth.onAuthStateChange((_event, session) => {
+      if (error) {
+        console.error('Error getting session:', error);
+      } else {
+        setUser(session?.user ?? null);
+      }
+    };
+    getSession();
+
+    // 2) Listen for auth changes (login/logout)
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
       setUser(session?.user ?? null);
     });
 
-    // Fetch the list of restaurants
+    // 3) Fetch the list of restaurants
     fetchRestaurants();
+
+    // Cleanup the subscription listener on unmount
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   const fetchRestaurants = async () => {
@@ -66,23 +84,29 @@ const App = () => {
   };
 
   // ---------------------------
-  // Authentication handlers
+  // Authentication handlers (Supabase v2)
   // ---------------------------
   const handleSignUp = async () => {
-    const { user, error } = await supabase.auth.signUp({ email, password });
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+    });
     if (error) {
       console.error('Error signing up:', error.message);
     } else {
-      console.log('Signed up user:', user);
+      console.log('Signed up user:', data);
     }
   };
 
   const handleSignIn = async () => {
-    const { user, error } = await supabase.auth.signIn({ email, password });
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
     if (error) {
       console.error('Error signing in:', error.message);
     } else {
-      console.log('Signed in user:', user);
+      console.log('Signed in user:', data);
     }
   };
 
@@ -98,10 +122,10 @@ const App = () => {
   // ---------------------------
   const handleNewRestaurantChange = (e) => {
     const { name, value } = e.target;
-    setNewRestaurant({
-      ...newRestaurant,
+    setNewRestaurant((prev) => ({
+      ...prev,
       [name]: value,
-    });
+    }));
   };
 
   const handleAddRestaurant = async () => {
@@ -111,14 +135,14 @@ const App = () => {
     }
     const { data, error } = await supabase
       .from('restaurants')
-      .insert([{ ...newRestaurant }]);
+      .insert([newRestaurant]);
 
     if (error) {
       console.error('Error inserting restaurant:', error);
     } else {
       console.log('Inserted restaurant:', data);
       // Add new restaurant to state so we don't have to refetch
-      setRestaurants([...restaurants, ...data]);
+      setRestaurants((prev) => [...prev, ...data]);
       // Clear the form
       setNewRestaurant({
         name: '',
