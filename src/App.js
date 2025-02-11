@@ -8,6 +8,7 @@ import AuthModal from './components/AuthModal';
 import AddRestaurantModal from './components/AddRestaurantModal';
 
 const App = () => {
+   
    const HeroSection = () => {
   return (
     <div className="relative text-center text-white py-20" style={{ backgroundImage: 'url(https://halalfoundation.org/wp-content/uploads/2024/04/halal-food-1080x620.jpg/1200x400)', backgroundSize: 'cover' }}>
