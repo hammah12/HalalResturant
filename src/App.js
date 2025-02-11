@@ -6,7 +6,7 @@ import HeroSection from './components/HeroSection';
 import RestaurantList from './components/RestaurantList';
 import RestaurantDetailModal from './components/RestaurantDetailModal';
 import AuthModal from './components/AuthModal';
-import AddRestaurantModal from './components/AddRestaurantModal';
+import AddRestaurantForm from './components/AddRestaurantForm';
 
 const App = () => {
   // ---------------------------
@@ -26,20 +26,10 @@ const App = () => {
   const [password, setPassword] = useState('');
   const [authMode, setAuthMode] = useState("signin");
   const [showAuthModal, setShowAuthModal] = useState(false);
-
+  
   // ---------------------------
   // State for New Restaurant Form
   // ---------------------------
-  const [newRestaurant, setNewRestaurant] = useState({
-    name: '',
-    description: '',
-    address: '',
-    rating: 0,
-    halalStatus: '',
-    google: '',
-    hours: '',
-    phone: '',
-  });
   const [showAddModal, setShowAddModal] = useState(false);
 
   // ---------------------------
@@ -105,60 +95,8 @@ const App = () => {
     }
   };
 
-  // ---------------------------
-  // Add Restaurant Handler
-  // ---------------------------
-  const handleAddRestaurant = async () => {
-    if (!user) {
-      console.error("You must be signed in to add a restaurant!");
-      return;
-    }
-    const { data, error } = await supabase.from('restaurants').insert([newRestaurant]);
-    if (error) {
-      console.error("Error inserting restaurant:", error);
-    } else {
-      console.log("Inserted restaurant:", data);
-      setRestaurants([...restaurants, ...data]);
-      setNewRestaurant({
-        name: '',
-        description: '',
-        address: '',
-        rating: 0,
-        halalStatus: '',
-        google: '',
-        hours: '',
-        phone: '',
-      });
-      setShowAddModal(false);
-    }
-  };
-
-  // ---------------------------
-  // Filter & Sort Restaurants
-  // ---------------------------
-  const filteredRestaurants = restaurants
-    .filter((restaurant) => {
-      const matchesSearch =
-        restaurant.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        restaurant.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        restaurant.address.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesHalal = halalFilter === '' || restaurant.halalStatus === halalFilter;
-      return matchesSearch && matchesHalal;
-    })
-    .sort((a, b) => {
-      if (sortOption === 'rating') return b.rating - a.rating;
-      if (sortOption === 'name') return a.name.localeCompare(b.name);
-      return 0;
-    });
-
-  const handleNewRestaurantChange = (e) => {
-    const { name, value } = e.target;
-    setNewRestaurant(prev => ({ ...prev, [name]: value }));
-  };
-
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Navbar */}
       <Navbar 
         user={user}
         onAddRestaurant={() => setShowAddModal(true)}
@@ -166,52 +104,32 @@ const App = () => {
         onSignIn={() => setShowAuthModal(true)}
       />
 
-      {/* Hero Section */}
       <HeroSection />
 
-      {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h2 className="text-4xl font-extrabold text-center text-gray-800 mb-6">
-            Halal Restaurants in Chicago
-          </h2>
-
-          {/* Search & Filters */}
-          <div className="flex flex-wrap gap-4 justify-center mb-6">
-            <input
-              type="text"
-              placeholder="Search by name, food type, or city..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500"
-            />
-            <select
-              value={sortOption}
-              onChange={(e) => setSortOption(e.target.value)}
-              className="p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500"
-            >
-              <option value="name">Sort by Name</option>
-              <option value="rating">Sort by Rating</option>
-            </select>
-            <select
-              value={halalFilter}
-              onChange={(e) => setHalalFilter(e.target.value)}
-              className="p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500"
-            >
-              <option value="">All Halal Types</option>
-              <option value="HMS">HMS</option>
-              <option value="HFSAA">HFSAA</option>
-              <option value="Self-Reported">Self-Reported</option>
-            </select>
-          </div>
-
-          {/* Restaurant List */}
-          <RestaurantList 
-            restaurants={filteredRestaurants}
-            onSelectRestaurant={(restaurant) => setSelectedRestaurant(restaurant)}
-          />
+        <h2 className="text-4xl font-extrabold text-center text-gray-800 mb-6">
+          Halal Restaurants in Chicago
+        </h2>
+        <div className="flex flex-wrap gap-4 justify-center mb-6">
+          <input type="text" placeholder="Search..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="p-3 rounded-lg border border-gray-300" />
+          <select value={sortOption} onChange={(e) => setSortOption(e.target.value)} className="p-3 rounded-lg border border-gray-300">
+            <option value="name">Sort by Name</option>
+            <option value="rating">Sort by Rating</option>
+          </select>
+          <select value={halalFilter} onChange={(e) => setHalalFilter(e.target.value)} className="p-3 rounded-lg border border-gray-300">
+            <option value="">All Halal Types</option>
+            <option value="HMS">HMS</option>
+            <option value="HFSAA">HFSAA</option>
+            <option value="Self-Reported">Self-Reported</option>
+          </select>
         </div>
+
+        <RestaurantList restaurants={restaurants} onSelectRestaurant={setSelectedRestaurant} />
       </main>
+
+      {showAddModal && <AddRestaurantForm onClose={() => setShowAddModal(false)} />}
+      {selectedRestaurant && <RestaurantDetailModal restaurant={selectedRestaurant} onClose={() => setSelectedRestaurant(null)} />}
+      {showAuthModal && <AuthModal authMode={authMode} setAuthMode={setAuthMode} email={email} setEmail={setEmail} password={password} setPassword={setPassword} onClose={() => setShowAuthModal(false)} />}
     </div>
   );
 };
