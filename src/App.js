@@ -1,10 +1,11 @@
-// App.js
+// src/App.js
 import React, { useEffect, useState } from 'react';
-import { supabase } from './supabaseClient'; // Ensure this path is correct
-import Card from './components/Card';
-import CardTitle from './components/CardTitle';
-import CardDescription from './components/CardDescription';
-import CardContent from './components/CardContent';
+import { supabase } from './supabaseClient';
+import Navbar from './components/Navbar';
+import RestaurantList from './components/RestaurantList';
+import RestaurantDetailModal from './components/RestaurantDetailModal';
+import AuthModal from './components/AuthModal';
+import AddRestaurantModal from './components/AddRestaurantModal';
 
 const App = () => {
   // ---------------------------
@@ -22,6 +23,8 @@ const App = () => {
   const [user, setUser] = useState(null);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [authMode, setAuthMode] = useState("signin");
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   // ---------------------------
   // State for New Restaurant Form
@@ -36,19 +39,12 @@ const App = () => {
     hours: '',
     phone: '',
   });
-
-  // ---------------------------
-  // Modal Visibility State
-  // ---------------------------
-  const [showAuthModal, setShowAuthModal] = useState(false);
-  const [authMode, setAuthMode] = useState("signin"); // "signin" or "signup"
   const [showAddModal, setShowAddModal] = useState(false);
 
   // ---------------------------
   // useEffect: Check Auth & Fetch Restaurants
   // ---------------------------
   useEffect(() => {
-    // Get current session
     const getSession = async () => {
       const { data: { session }, error } = await supabase.auth.getSession();
       if (error) {
@@ -59,12 +55,10 @@ const App = () => {
     };
     getSession();
 
-    // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setUser(session?.user ?? null);
     });
 
-    // Fetch restaurants
     fetchRestaurants();
 
     return () => {
@@ -82,31 +76,24 @@ const App = () => {
   };
 
   // ---------------------------
-  // Authentication Handlers (Supabase v2)
+  // Authentication Handlers
   // ---------------------------
   const handleSignUp = async () => {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-    });
+    const { data, error } = await supabase.auth.signUp({ email, password });
     if (error) {
       console.error("Error signing up:", error.message);
     } else {
       console.log("Signed up user:", data);
-      // Optionally notify the user to verify their email.
     }
   };
 
   const handleSignIn = async () => {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
       console.error("Error signing in:", error.message);
     } else {
       console.log("Signed in user:", data);
-      setShowAuthModal(false); // Close modal on success
+      setShowAuthModal(false);
     }
   };
 
@@ -163,42 +150,20 @@ const App = () => {
       return 0;
     });
 
-  // ---------------------------
-  // Handlers for New Restaurant Form Fields
-  // ---------------------------
   const handleNewRestaurantChange = (e) => {
     const { name, value } = e.target;
     setNewRestaurant(prev => ({ ...prev, [name]: value }));
   };
 
-  // ---------------------------
-  // Render
-  // ---------------------------
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Navigation Bar */}
-      <header className="bg-white shadow">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-purple-600">Halal Finder</h1>
-          <nav className="space-x-4">
-            <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-              className="text-gray-700 hover:text-purple-600">Home</button>
-            {user ? (
-              <>
-                <button onClick={() => setShowAddModal(true)}
-                  className="text-gray-700 hover:text-purple-600">Add Restaurant</button>
-                <button onClick={handleSignOut}
-                  className="text-gray-700 hover:text-purple-600">Sign Out</button>
-              </>
-            ) : (
-              <button onClick={() => setShowAuthModal(true)}
-                className="text-gray-700 hover:text-purple-600">Sign In</button>
-            )}
-          </nav>
-        </div>
-      </header>
+      <Navbar 
+        user={user}
+        onAddRestaurant={() => setShowAddModal(true)}
+        onSignOut={handleSignOut}
+        onSignIn={() => setShowAuthModal(true)}
+      />
 
-      {/* Main Content: Restaurants Listing */}
       <main className="container mx-auto px-4 py-8">
         <div className="mb-8">
           <h2 className="text-4xl font-extrabold text-center text-gray-800 mb-6">
@@ -231,199 +196,42 @@ const App = () => {
               <option value="Self-Reported">Self-Reported</option>
             </select>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredRestaurants.map((restaurant) => (
-              <Card
-                key={restaurant.id}
-                className="bg-white shadow-md rounded-lg overflow-hidden transform hover:scale-105 transition-transform duration-300"
-              >
-                <CardContent className="p-6">
-                  <CardTitle
-                    className="text-2xl font-bold text-purple-600 cursor-pointer"
-                    onClick={() => setSelectedRestaurant(restaurant)}
-                  >
-                    {restaurant.name}
-                  </CardTitle>
-                  <CardDescription className="text-gray-700 mt-2">
-                    {restaurant.description}
-                  </CardDescription>
-                  <p className="text-gray-600 mt-2">{restaurant.address}</p>
-                  <div className="flex items-center justify-between mt-4">
-                    <div className="flex items-center">
-                      <span className="text-yellow-500 mr-1">★</span>
-                      <span className="text-gray-800 font-semibold">{restaurant.rating}</span>
-                    </div>
-                    <span className={`text-sm font-semibold py-1 px-2 rounded-full ${
-                      restaurant.halalStatus === 'HMS' ? 'bg-green-600 text-white' :
-                      restaurant.halalStatus === 'HFSAA' ? 'bg-blue-600 text-white' :
-                      'bg-orange-600 text-white'
-                    }`}>
-                      {restaurant.halalStatus}
-                    </span>
-                  </div>
-                  {restaurant.google && (
-                    <a href={restaurant.google} target="_blank" rel="noopener noreferrer"
-                      className="text-blue-500 underline mt-2 inline-block">
-                      View on Google
-                    </a>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
 
-        {/* Restaurant Details Modal */}
-        {selectedRestaurant && (
-          <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-            <div className="bg-white rounded-lg p-8 max-w-md w-full">
-              <h2 className="text-3xl font-bold mb-4">{selectedRestaurant.name}</h2>
-              <p className="text-gray-700 mb-2">{selectedRestaurant.description}</p>
-              <p className="text-gray-600 mb-2">{selectedRestaurant.address}</p>
-              <p className="text-gray-600 mb-2">{selectedRestaurant.hours}</p>
-              <p className="text-gray-600 mb-4">{selectedRestaurant.phone}</p>
-              <button onClick={() => setSelectedRestaurant(null)}
-                className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 transition-colors">
-                Close
-              </button>
-            </div>
-          </div>
-        )}
+          <RestaurantList 
+            restaurants={filteredRestaurants}
+            onSelectRestaurant={(restaurant) => setSelectedRestaurant(restaurant)}
+          />
+        </div>
       </main>
 
-      {/* Authentication Modal */}
-      {showAuthModal && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full">
-            <h2 className="text-2xl font-bold mb-4">
-              {authMode === "signin" ? "Sign In" : "Sign Up"}
-            </h2>
-            <input
-              type="email"
-              placeholder="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full p-3 mb-4 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-purple-500"
-            />
-            <input
-              type="password"
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full p-3 mb-4 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-purple-500"
-            />
-            <div className="flex justify-between items-center">
-              {authMode === "signin" ? (
-                <button onClick={handleSignIn}
-                  className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 transition-colors">
-                  Sign In
-                </button>
-              ) : (
-                <button onClick={handleSignUp}
-                  className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition-colors">
-                  Sign Up
-                </button>
-              )}
-              <button onClick={() => setShowAuthModal(false)}
-                className="text-gray-500 ml-2">
-                Cancel
-              </button>
-            </div>
-            <p className="mt-4 text-sm">
-              {authMode === "signin" ? "Don't have an account?" : "Already have an account?"}
-              <button onClick={() => setAuthMode(authMode === "signin" ? "signup" : "signin")}
-                className="text-purple-600 underline ml-1">
-                {authMode === "signin" ? "Sign Up" : "Sign In"}
-              </button>
-            </p>
-          </div>
-        </div>
+      {selectedRestaurant && (
+        <RestaurantDetailModal 
+          restaurant={selectedRestaurant} 
+          onClose={() => setSelectedRestaurant(null)}
+        />
       )}
 
-      {/* Add Restaurant Modal */}
+      {showAuthModal && (
+        <AuthModal 
+          authMode={authMode}
+          email={email}
+          setEmail={setEmail}
+          password={password}
+          setPassword={setPassword}
+          onSignIn={handleSignIn}
+          onSignUp={handleSignUp}
+          onClose={() => setShowAuthModal(false)}
+          toggleAuthMode={() => setAuthMode(authMode === "signin" ? "signup" : "signin")}
+        />
+      )}
+
       {showAddModal && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full">
-            <h2 className="text-2xl font-bold mb-4">Add a New Restaurant</h2>
-            <input
-              type="text"
-              name="name"
-              placeholder="Name"
-              value={newRestaurant.name}
-              onChange={handleNewRestaurantChange}
-              className="w-full p-3 mb-4 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-purple-500"
-            />
-            <input
-              type="text"
-              name="description"
-              placeholder="Description"
-              value={newRestaurant.description}
-              onChange={handleNewRestaurantChange}
-              className="w-full p-3 mb-4 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-purple-500"
-            />
-            <input
-              type="text"
-              name="address"
-              placeholder="Address"
-              value={newRestaurant.address}
-              onChange={handleNewRestaurantChange}
-              className="w-full p-3 mb-4 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-purple-500"
-            />
-            <input
-              type="number"
-              name="rating"
-              placeholder="Rating"
-              value={newRestaurant.rating}
-              onChange={handleNewRestaurantChange}
-              className="w-full p-3 mb-4 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-purple-500"
-            />
-            <select
-              name="halalStatus"
-              value={newRestaurant.halalStatus}
-              onChange={handleNewRestaurantChange}
-              className="w-full p-3 mb-4 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-purple-500"
-            >
-              <option value="">Select Halal Type</option>
-              <option value="HMS">HMS</option>
-              <option value="HFSAA">HFSAA</option>
-              <option value="Self-Reported">Self-Reported</option>
-            </select>
-            <input
-              type="text"
-              name="google"
-              placeholder="Google Maps URL"
-              value={newRestaurant.google}
-              onChange={handleNewRestaurantChange}
-              className="w-full p-3 mb-4 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-purple-500"
-            />
-            <input
-              type="text"
-              name="hours"
-              placeholder="Hours"
-              value={newRestaurant.hours}
-              onChange={handleNewRestaurantChange}
-              className="w-full p-3 mb-4 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-purple-500"
-            />
-            <input
-              type="text"
-              name="phone"
-              placeholder="Phone"
-              value={newRestaurant.phone}
-              onChange={handleNewRestaurantChange}
-              className="w-full p-3 mb-4 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-purple-500"
-            />
-            <div className="flex justify-between items-center">
-              <button onClick={handleAddRestaurant}
-                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors">
-                Add Restaurant
-              </button>
-              <button onClick={() => setShowAddModal(false)}
-                className="text-gray-500 ml-2">
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
+        <AddRestaurantModal 
+          newRestaurant={newRestaurant}
+          handleNewRestaurantChange={handleNewRestaurantChange}
+          onAddRestaurant={handleAddRestaurant}
+          onClose={() => setShowAddModal(false)}
+        />
       )}
     </div>
   );
