@@ -1,47 +1,32 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { supabase } from './supabaseClient'; // Ensure this path is correct
 import Card from './components/Card';
 import CardTitle from './components/CardTitle';
 import CardDescription from './components/CardDescription';
 import CardContent from './components/CardContent';
 
-const restaurants = [
-  {
-    id: 1,
-    name: 'Zaytune Mediterranean Grill',
-    description: 'A cozy spot offering a variety of Mediterranean dishes.',
-    rating: 4.5,
-    address: '123 Mediterranean Ave, Chicago, IL',
-    halalStatus: 'HMS',
-    hours: '10 AM - 10 PM',
-    phone: '(123) 456-7890',
-  },
-  {
-    id: 2,
-    name: 'Crisp',
-    description: 'Known for their Korean fried chicken with a halal twist.',
-    rating: 4.7,
-    address: '456 Crisp Blvd, Chicago, IL',
-    halalStatus: 'HFSAA',
-    hours: '11 AM - 9 PM',
-    phone: '(123) 456-7891',
-  },
-  {
-    id: 3,
-    name: 'Ghareeb Nawaz',
-    description: 'A popular choice for Indian and Pakistani cuisine.',
-    rating: 4.6,
-    address: '789 Nawaz St, Chicago, IL',
-    halalStatus: 'Self-Reported',
-    hours: '12 PM - 8 PM',
-    phone: '(123) 456-7892',
-  },
-];
-
 const App = () => {
+  const [restaurants, setRestaurants] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortOption, setSortOption] = useState('name');
   const [halalFilter, setHalalFilter] = useState('');
   const [selectedRestaurant, setSelectedRestaurant] = useState(null);
+
+  useEffect(() => {
+    const fetchRestaurants = async () => {
+      const { data, error } = await supabase
+        .from('restaurants')
+        .select('*');
+
+      if (error) {
+        console.error('Error fetching restaurants:', error);
+      } else {
+        setRestaurants(data);
+      }
+    };
+
+    fetchRestaurants();
+  }, []);
 
   const handleSearch = (event) => {
     setSearchTerm(event.target.value);
@@ -139,6 +124,16 @@ const App = () => {
                   {restaurant.halalStatus}
                 </span>
               </div>
+              {restaurant.google && (
+                <a
+                  href={restaurant.google}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-500 underline mt-2"
+                >
+                  View on Google
+                </a>
+              )}
             </CardContent>
           </Card>
         ))}
