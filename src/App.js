@@ -14,13 +14,13 @@ const App = () => {
 
   useEffect(() => {
     const fetchRestaurants = async () => {
-      const { data, error } = await supabase
-        .from('restaurants')
-        .select('*');
+      console.log("Fetching restaurants...");
+      const { data, error } = await supabase.from('restaurants').select('*');
 
       if (error) {
         console.error('Error fetching restaurants:', error);
       } else {
+        console.log("Fetched restaurants:", data);
         setRestaurants(data);
       }
     };
@@ -41,6 +41,7 @@ const App = () => {
   };
 
   const handleViewDetails = (restaurant) => {
+    console.log("Viewing details for:", restaurant);
     setSelectedRestaurant(restaurant);
   };
 
