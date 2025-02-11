@@ -5,7 +5,7 @@ const Card = ({ children, className, image }) => {
   return (
     <div className={`bg-white shadow-lg rounded-lg overflow-hidden transform hover:scale-105 transition-all duration-300 ${className}`}>
       {image && <img src={image} alt="Restaurant" className="w-full h-40 object-cover" />}
-      <div className="p-4">
+      <div className="p-5">
         {children}
       </div>
     </div>
