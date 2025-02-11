@@ -16,6 +16,7 @@
     "@supabase/supabase-js": "^2.39.3"
   },
   "devDependencies": {
-    "tailwindcss": "^3.3.5"
+    "tailwindcss": "^3.3.5",
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.0"
   }
 }
