@@ -26,15 +26,15 @@ const AddRestaurantForm = ({ onClose }) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    // Extract the file extension and build a unique filename
+    // Extract the file extension and create a unique filename
     const fileExt = file.name.split('.').pop();
     const fileName = `${Date.now()}.${fileExt}`;
-    // Since the bucket is public now, we can upload the file at the root (or you can add a folder prefix if desired)
+    // Upload to the root of the bucket (or add a folder prefix if desired)
     const filePath = fileName;
 
     console.log("Uploading file:", fileName);
 
-    // Upload the file to Supabase Storage in the 'restaurant-images' bucket
+    // Upload the file to Supabase Storage
     const { data: uploadData, error: uploadError } = await supabase
       .storage
       .from('restaurant-images')
@@ -46,28 +46,26 @@ const AddRestaurantForm = ({ onClose }) => {
       return;
     }
 
-    // Get the permanent public URL for the uploaded file
-    const { publicURL, error: urlError } = supabase
+    // Get the public URL for the uploaded file using the new v2 return shape.
+    const { data: publicData } = supabase
       .storage
       .from('restaurant-images')
       .getPublicUrl(uploadData.path);
 
-    if (urlError) {
-      console.error("Error getting public URL:", urlError);
+    if (!publicData || !publicData.publicUrl) {
+      console.error("Error getting public URL. publicData:", publicData);
       alert("Failed to get public URL.");
       return;
     }
 
-    console.log("Uploaded image public URL:", publicURL);
-    // Update state with the public URL of the uploaded image
-    setNewRestaurant((prev) => ({ ...prev, image: publicURL }));
+    console.log("Uploaded image public URL:", publicData.publicUrl);
+    // Update the state with the public URL of the uploaded image
+    setNewRestaurant((prev) => ({ ...prev, image: publicData.publicUrl }));
   };
 
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // Log the restaurant data to verify the image URL is included
     console.log("Submitting restaurant:", newRestaurant);
 
     const { data, error } = await supabase
@@ -80,7 +78,7 @@ const AddRestaurantForm = ({ onClose }) => {
     } else {
       console.log("Restaurant added:", data);
       alert("Restaurant added successfully!");
-      // Reset form state
+      // Reset the form state
       setNewRestaurant({
         name: '',
         description: '',
@@ -185,11 +183,7 @@ const AddRestaurantForm = ({ onClose }) => {
             >
               Add Restaurant
             </button>
-            <button
-              type="button"
-              onClick={onClose}
-              className="text-gray-600"
-            >
+            <button type="button" onClick={onClose} className="text-gray-600">
               Cancel
             </button>
           </div>
