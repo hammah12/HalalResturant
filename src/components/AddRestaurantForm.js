@@ -20,26 +20,28 @@ const AddRestaurantForm = ({ onClose }) => {
     setNewRestaurant((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleImageUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+const handleImageUpload = async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
 
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${Date.now()}.${fileExt}`;
-    const filePath = `restaurant-images/${fileName}`;
+  const fileExt = file.name.split('.').pop();
+  const fileName = `${Date.now()}.${fileExt}`;
+  const filePath = `${fileName}`; // Don't include "restaurant-images/" in path
 
-    console.log("Uploading file:", fileName);
+  console.log("Uploading file:", fileName);
 
-    const { data, error } = await supabase.storage.from('restaurant-images').upload(filePath, file);
+  const { data, error } = await supabase.storage.from('restaurant-images').upload(filePath, file);
 
-    if (error) {
-      console.error('Error uploading image:', error);
-      alert("Image upload failed.");
-    } else {
-      console.log('Uploaded image path:', data.path);
-      setNewRestaurant((prev) => ({ ...prev, image: data.path }));
-    }
-  };
+  if (error) {
+    console.error("Error uploading image:", error);
+    alert("Image upload failed.");
+  } else {
+    const publicUrl = `https://tsdqcubdaswmhiwskufu.supabase.co/storage/v1/object/public/restaurant-images/${data.path}`;
+    console.log("Uploaded image path:", publicUrl);
+    setNewRestaurant((prev) => ({ ...prev, image: publicUrl }));
+  }
+};
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
