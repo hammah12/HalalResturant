@@ -15,64 +15,72 @@ const AddRestaurantForm = ({ onClose }) => {
     image: null,
   });
 
+  // Handle input changes
   const handleChange = (e) => {
     const { name, value } = e.target;
     setNewRestaurant((prev) => ({ ...prev, [name]: value }));
   };
 
+  // Handle image upload
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
+    // Extract the file extension and build a unique filename
     const fileExt = file.name.split('.').pop();
     const fileName = `${Date.now()}.${fileExt}`;
-    // Prepend the 'private' folder to comply with your Supabase storage RLS policy.
-    const filePath = `private/${fileName}`;
+    // Since the bucket is public now, we can upload the file at the root (or you can add a folder prefix if desired)
+    const filePath = fileName;
 
     console.log("Uploading file:", fileName);
 
-    const { data, error } = await supabase
+    // Upload the file to Supabase Storage in the 'restaurant-images' bucket
+    const { data: uploadData, error: uploadError } = await supabase
       .storage
       .from('restaurant-images')
       .upload(filePath, file);
 
-    if (error) {
-      console.error("Error uploading image:", error);
+    if (uploadError) {
+      console.error("Error uploading image:", uploadError);
       alert("Image upload failed.");
-    } else {
-      // getPublicUrl is a synchronous method that returns an object with `publicUrl`
-      const { publicUrl } = supabase
-        .storage
-        .from('restaurant-images')
-        .getPublicUrl(data.path);
-
-      console.log("Uploaded image public URL:", publicUrl);
-      // Update the newRestaurant state with the image URL and log the updated state.
-      setNewRestaurant((prev) => {
-        const updatedRestaurant = { ...prev, image: publicUrl };
-        console.log("Updated restaurant state:", updatedRestaurant);
-        return updatedRestaurant;
-      });
+      return;
     }
+
+    // Get the permanent public URL for the uploaded file
+    const { publicURL, error: urlError } = supabase
+      .storage
+      .from('restaurant-images')
+      .getPublicUrl(uploadData.path);
+
+    if (urlError) {
+      console.error("Error getting public URL:", urlError);
+      alert("Failed to get public URL.");
+      return;
+    }
+
+    console.log("Uploaded image public URL:", publicURL);
+    // Update state with the public URL of the uploaded image
+    setNewRestaurant((prev) => ({ ...prev, image: publicURL }));
   };
 
+  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Log the restaurant data to verify the image URL is included.
+    // Log the restaurant data to verify the image URL is included
     console.log("Submitting restaurant:", newRestaurant);
-    
+
     const { data, error } = await supabase
       .from('restaurants')
       .insert([newRestaurant]);
-    
+
     if (error) {
-      console.error('Error adding restaurant:', error);
+      console.error("Error adding restaurant:", error);
       alert("Failed to add restaurant.");
     } else {
-      console.log('Restaurant added:', data);
+      console.log("Restaurant added:", data);
       alert("Restaurant added successfully!");
-      // Reset the form state.
+      // Reset form state
       setNewRestaurant({
         name: '',
         description: '',
@@ -177,7 +185,11 @@ const AddRestaurantForm = ({ onClose }) => {
             >
               Add Restaurant
             </button>
-            <button type="button" onClick={onClose} className="text-gray-600">
+            <button
+              type="button"
+              onClick={onClose}
+              className="text-gray-600"
+            >
               Cancel
             </button>
           </div>
