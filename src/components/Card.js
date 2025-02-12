@@ -1,18 +1,17 @@
 import React from 'react';
 
-const Card = ({ restaurant, className }) => {
+const Card = ({ restaurant }) => {
   if (!restaurant) {
     console.warn("Card received undefined restaurant!");
     return null;
   }
 
   return (
-    <div className={`bg-white shadow-md rounded-lg overflow-hidden transform hover:scale-105 transition-transform duration-300 ${className}`}>
-      
+    <div className="bg-white shadow-md rounded-lg overflow-hidden transform hover:scale-105 transition-transform duration-300">
       {/* Display Image */}
       {restaurant.image ? (
         <img 
-          src={`https://tsdqcubdaswmhiwskufu.supabase.co/storage/v1/object/public/restaurant-images/${restaurant.image}`} 
+          src={restaurant.image} 
           alt={restaurant.name || "Restaurant Image"} 
           className="w-full h-48 object-cover"
         />
