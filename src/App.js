@@ -36,14 +36,16 @@ const App = () => {
   // useEffect: Check Auth & Fetch Restaurants
   // ---------------------------
   useEffect(() => {
+
     const fetchRestaurants = async () => {
-      const { data, error } = await supabase.from('restaurants').select('*');
-      if (error) {
-        console.error("Error fetching restaurants:", error);
-      } else {
-        setRestaurants(data);
-      }
-    };
+  const { data, error } = await supabase.from('restaurants').select('*');
+  if (error) {
+    console.error("Error fetching restaurants:", error);
+  } else {
+    console.log("Fetched restaurants:", data); // Debugging log
+    setRestaurants(data);
+  }
+};
 
     const getSession = async () => {
       const { data: { session }, error } = await supabase.auth.getSession();
