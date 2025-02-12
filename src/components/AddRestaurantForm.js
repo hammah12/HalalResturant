@@ -22,24 +22,48 @@ const AddRestaurantForm = ({ onClose }) => {
 
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
+    if (!file) return;
+
     const fileExt = file.name.split('.').pop();
     const fileName = `${Date.now()}.${fileExt}`;
-    
-    const { data, error } = await supabase.storage.from('restaurant-images').upload(fileName, file);
+    const filePath = `restaurant-images/${fileName}`;
+
+    console.log("Uploading file:", fileName);
+
+    const { data, error } = await supabase.storage.from('restaurant-images').upload(filePath, file);
+
     if (error) {
       console.error('Error uploading image:', error);
+      alert("Image upload failed.");
     } else {
+      console.log('Uploaded image path:', data.path);
       setNewRestaurant((prev) => ({ ...prev, image: data.path }));
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    console.log("Submitting restaurant:", newRestaurant);
     const { data, error } = await supabase.from('restaurants').insert([newRestaurant]);
+    
     if (error) {
       console.error('Error adding restaurant:', error);
+      alert("Failed to add restaurant.");
     } else {
       console.log('Restaurant added:', data);
+      alert("Restaurant added successfully!");
+      setNewRestaurant({
+        name: '',
+        description: '',
+        address: '',
+        rating: '',
+        halalStatus: '',
+        google: '',
+        hours: '',
+        phone: '',
+        image: null,
+      });
       onClose();
     }
   };
