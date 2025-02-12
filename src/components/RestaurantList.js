@@ -1,4 +1,3 @@
-// src/components/RestaurantList.js
 import React from 'react';
 import Card from './Card';
 import CardTitle from './CardTitle';
@@ -10,6 +9,20 @@ const RestaurantList = ({ restaurants, onSelectRestaurant }) => {
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
       {restaurants.map((restaurant) => (
         <Card key={restaurant.id} className="bg-white shadow-md rounded-lg overflow-hidden transform hover:scale-105 transition-transform duration-300">
+          
+          {/* Display Image */}
+          {restaurant.image ? (
+            <img 
+              src={`https://tsdqcubdaswmhiwskufu.supabase.co/storage/v1/object/public/restaurant-images/${restaurant.image}`} 
+              alt={restaurant.name} 
+              className="w-full h-48 object-cover"
+            />
+          ) : (
+            <div className="w-full h-48 bg-gray-300 flex items-center justify-center text-gray-500">
+              No Image Available
+            </div>
+          )}
+
           <CardContent className="p-6">
             <CardTitle 
               className="text-2xl font-bold text-purple-600 cursor-pointer" 
