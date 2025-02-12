@@ -1,19 +1,19 @@
 import React from 'react';
 
-const Card = ({ restaurant }) => {
+const Card = ({ restaurant, className }) => {
   if (!restaurant) {
     console.warn("Card received undefined restaurant!");
     return null;
   }
 
-  console.log("Rendering card for:", restaurant); // Debugging log
-
   return (
-    <div className="bg-white shadow-md rounded-lg overflow-hidden transform hover:scale-105 transition-transform duration-300">
+    <div className={`bg-white shadow-md rounded-lg overflow-hidden transform hover:scale-105 transition-transform duration-300 ${className}`}>
+      
+      {/* Display Image */}
       {restaurant.image ? (
-        <img
-          src={`https://tsdqcubdaswmhiwskufu.supabase.co/storage/v1/object/public/restaurant-images/${restaurant.image}`}
-          alt={restaurant.name || "Restaurant Image"}
+        <img 
+          src={`https://tsdqcubdaswmhiwskufu.supabase.co/storage/v1/object/public/restaurant-images/${restaurant.image}`} 
+          alt={restaurant.name || "Restaurant Image"} 
           className="w-full h-48 object-cover"
         />
       ) : (
@@ -21,6 +21,7 @@ const Card = ({ restaurant }) => {
           No Image Available
         </div>
       )}
+
       <div className="p-6">
         <h2 className="text-2xl font-bold text-purple-600">{restaurant.name || "Unknown Restaurant"}</h2>
         <p className="text-gray-700 mt-2">{restaurant.description || "No description available."}</p>
