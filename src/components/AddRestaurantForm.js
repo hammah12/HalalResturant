@@ -26,7 +26,7 @@ const AddRestaurantForm = ({ onClose }) => {
 
     const fileExt = file.name.split('.').pop();
     const fileName = `${Date.now()}.${fileExt}`;
-    // Prepend the 'private' folder to comply with the RLS policy.
+    // Prepend the 'private' folder to comply with your Supabase RLS policy.
     const filePath = `private/${fileName}`;
 
     console.log("Uploading file:", fileName);
@@ -40,7 +40,7 @@ const AddRestaurantForm = ({ onClose }) => {
       console.error("Error uploading image:", error);
       alert("Image upload failed.");
     } else {
-      // Get the public URL for the uploaded image.
+      // Retrieve the public URL of the uploaded image.
       const { publicURL, error: urlError } = supabase
         .storage
         .from('restaurant-images')
@@ -50,8 +50,13 @@ const AddRestaurantForm = ({ onClose }) => {
         console.error("Error getting public URL:", urlError);
         alert("Failed to get public URL.");
       } else {
-        console.log("Uploaded image path:", publicURL);
-        setNewRestaurant((prev) => ({ ...prev, image: publicURL }));
+        console.log("Uploaded image public URL:", publicURL);
+        // Update the newRestaurant state with the image URL and log the updated state.
+        setNewRestaurant((prev) => {
+          const updatedRestaurant = { ...prev, image: publicURL };
+          console.log("Updated restaurant state:", updatedRestaurant);
+          return updatedRestaurant;
+        });
       }
     }
   };
@@ -59,7 +64,9 @@ const AddRestaurantForm = ({ onClose }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Log the restaurant data to verify the image URL is included.
     console.log("Submitting restaurant:", newRestaurant);
+    
     const { data, error } = await supabase
       .from('restaurants')
       .insert([newRestaurant]);
@@ -70,6 +77,7 @@ const AddRestaurantForm = ({ onClose }) => {
     } else {
       console.log('Restaurant added:', data);
       alert("Restaurant added successfully!");
+      // Reset the form state.
       setNewRestaurant({
         name: '',
         description: '',
@@ -174,11 +182,7 @@ const AddRestaurantForm = ({ onClose }) => {
             >
               Add Restaurant
             </button>
-            <button
-              type="button"
-              onClick={onClose}
-              className="text-gray-600"
-            >
+            <button type="button" onClick={onClose} className="text-gray-600">
               Cancel
             </button>
           </div>
