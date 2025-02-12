@@ -26,7 +26,7 @@ const AddRestaurantForm = ({ onClose }) => {
 
     const fileExt = file.name.split('.').pop();
     const fileName = `${Date.now()}.${fileExt}`;
-    // Prepend the 'private' folder to comply with your Supabase RLS policy.
+    // Prepend the 'private' folder to comply with your Supabase storage RLS policy.
     const filePath = `private/${fileName}`;
 
     console.log("Uploading file:", fileName);
@@ -40,24 +40,19 @@ const AddRestaurantForm = ({ onClose }) => {
       console.error("Error uploading image:", error);
       alert("Image upload failed.");
     } else {
-      // Retrieve the public URL of the uploaded image.
-      const { publicURL, error: urlError } = supabase
+      // getPublicUrl is a synchronous method that returns an object with `publicUrl`
+      const { publicUrl } = supabase
         .storage
         .from('restaurant-images')
         .getPublicUrl(data.path);
 
-      if (urlError) {
-        console.error("Error getting public URL:", urlError);
-        alert("Failed to get public URL.");
-      } else {
-        console.log("Uploaded image public URL:", publicURL);
-        // Update the newRestaurant state with the image URL and log the updated state.
-        setNewRestaurant((prev) => {
-          const updatedRestaurant = { ...prev, image: publicURL };
-          console.log("Updated restaurant state:", updatedRestaurant);
-          return updatedRestaurant;
-        });
-      }
+      console.log("Uploaded image public URL:", publicUrl);
+      // Update the newRestaurant state with the image URL and log the updated state.
+      setNewRestaurant((prev) => {
+        const updatedRestaurant = { ...prev, image: publicUrl };
+        console.log("Updated restaurant state:", updatedRestaurant);
+        return updatedRestaurant;
+      });
     }
   };
 
