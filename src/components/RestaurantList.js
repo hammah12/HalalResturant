@@ -5,61 +5,62 @@ import CardDescription from './CardDescription';
 import CardContent from './CardContent';
 
 const RestaurantList = ({ restaurants, onSelectRestaurant }) => {
+  if (!restaurants || restaurants.length === 0) {
+    return <p className="text-center text-gray-500">No restaurants found.</p>;
+  }
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-      {restaurants.map((restaurant) => (
-        <Card key={restaurant.id} className="bg-white shadow-md rounded-lg overflow-hidden transform hover:scale-105 transition-transform duration-300">
-          
-          {/* Display Image */}
-          {restaurant.image ? (
-            <img 
-              src={`https://tsdqcubdaswmhiwskufu.supabase.co/storage/v1/object/public/restaurant-images/${restaurant.image}`} 
-              alt={restaurant.name} 
-              className="w-full h-48 object-cover"
-            />
-          ) : (
-            <div className="w-full h-48 bg-gray-300 flex items-center justify-center text-gray-500">
-              No Image Available
-            </div>
-          )}
+      {restaurants.map((restaurant) => {
+        if (!restaurant) {
+          console.warn("Skipping undefined restaurant in RestaurantList!");
+          return null; // Prevent rendering undefined objects
+        }
 
-          <CardContent className="p-6">
-            <CardTitle 
-              className="text-2xl font-bold text-purple-600 cursor-pointer" 
-              onClick={() => onSelectRestaurant(restaurant)}
-            >
-              {restaurant.name}
-            </CardTitle>
-            <CardDescription className="text-gray-700 mt-2">
-              {restaurant.description}
-            </CardDescription>
-            <p className="text-gray-600 mt-2">{restaurant.address}</p>
-            <div className="flex items-center justify-between mt-4">
-              <div className="flex items-center">
-                <span className="text-yellow-500 mr-1">★</span>
-                <span className="text-gray-800 font-semibold">{restaurant.rating}</span>
-              </div>
-              <span className={`text-sm font-semibold py-1 px-2 rounded-full ${
-                restaurant.halalStatus === 'HMS' ? 'bg-green-600 text-white' :
-                restaurant.halalStatus === 'HFSAA' ? 'bg-blue-600 text-white' :
-                'bg-orange-600 text-white'
-              }`}>
-                {restaurant.halalStatus}
-              </span>
-            </div>
-            {restaurant.google && (
-              <a 
-                href={restaurant.google} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="text-blue-500 underline mt-2 inline-block"
+        return (
+          <Card 
+            key={restaurant.id} 
+            restaurant={restaurant} 
+            className="bg-white shadow-md rounded-lg overflow-hidden transform hover:scale-105 transition-transform duration-300"
+          >
+            <CardContent className="p-6">
+              <CardTitle 
+                className="text-2xl font-bold text-purple-600 cursor-pointer" 
+                onClick={() => onSelectRestaurant(restaurant)}
               >
-                View on Google
-              </a>
-            )}
-          </CardContent>
-        </Card>
-      ))}
+                {restaurant.name}
+              </CardTitle>
+              <CardDescription className="text-gray-700 mt-2">
+                {restaurant.description}
+              </CardDescription>
+              <p className="text-gray-600 mt-2">{restaurant.address}</p>
+              <div className="flex items-center justify-between mt-4">
+                <div className="flex items-center">
+                  <span className="text-yellow-500 mr-1">★</span>
+                  <span className="text-gray-800 font-semibold">{restaurant.rating}</span>
+                </div>
+                <span className={`text-sm font-semibold py-1 px-2 rounded-full ${
+                  restaurant.halalStatus === 'HMS' ? 'bg-green-600 text-white' :
+                  restaurant.halalStatus === 'HFSAA' ? 'bg-blue-600 text-white' :
+                  'bg-orange-600 text-white'
+                }`}>
+                  {restaurant.halalStatus}
+                </span>
+              </div>
+              {restaurant.google && (
+                <a 
+                  href={restaurant.google} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-blue-500 underline mt-2 inline-block"
+                >
+                  View on Google
+                </a>
+              )}
+            </CardContent>
+          </Card>
+        );
+      })}
     </div>
   );
 };
