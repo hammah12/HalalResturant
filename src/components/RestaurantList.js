@@ -27,7 +27,7 @@ const RestaurantList = ({
     return 0;
   });
 
-  // Group restaurants based on selected option (location, cuisine or none)
+  // Group restaurants based on selected option (location, cuisine, or none)
   const groupRestaurants = (restaurants, groupBy) => {
     if (!groupBy || groupBy === 'none') return { All: restaurants };
 
@@ -50,39 +50,47 @@ const RestaurantList = ({
 
           {/* Responsive Grid */}
           <ul className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-            {groupedRestaurants[groupKey].map((restaurant) => (
-              <li
-                key={restaurant.id}
-                onClick={() => onSelectRestaurant(restaurant)}
-                className="bg-white rounded-xl shadow-md hover:shadow-xl transition-shadow cursor-pointer
-                           border border-transparent hover:border-indigo-300 overflow-hidden"
-              >
-                {/* Image Section */}
-                {restaurant.image_url ? (
-                  <div className="h-48 overflow-hidden">
-                    <img
-                      src={restaurant.image_url}
-                      alt={restaurant.name}
-                      className="object-cover w-full h-full"
-                    />
-                  </div>
-                ) : (
-                  <div className="h-48 flex items-center justify-center bg-gray-200 text-gray-500">
-                    No Image
-                  </div>
-                )}
+            {groupedRestaurants[groupKey].map((restaurant) => {
+              console.log('Rendering restaurant:', restaurant.name, 'Image URL:', restaurant.image_url);
+              return (
+                <li
+                  key={restaurant.id}
+                  onClick={() => onSelectRestaurant(restaurant)}
+                  className="bg-white rounded-xl shadow-md hover:shadow-xl transition-shadow cursor-pointer border border-transparent hover:border-indigo-300 overflow-hidden"
+                >
+                  {/* Image Section */}
+                  {restaurant.image_url ? (
+                    <div className="h-48 overflow-hidden">
+                      <img
+                        src={restaurant.image_url}
+                        alt={restaurant.name}
+                        className="object-cover w-full h-full"
+                        onError={(e) => {
+                          console.error(`Failed to load image for ${restaurant.name} at URL: ${restaurant.image_url}`);
+                          e.target.onerror = null; // Prevents looping
+                          // Optionally, set a fallback image:
+                          e.target.src = '/fallback-image.png';
+                        }}
+                      />
+                    </div>
+                  ) : (
+                    <div className="h-48 flex items-center justify-center bg-gray-200 text-gray-500">
+                      No Image
+                    </div>
+                  )}
 
-                {/* Text Section */}
-                <div className="p-6">
-                  <h4 className="text-2xl font-semibold mb-2 text-gray-800">{restaurant.name}</h4>
-                  <p className="text-gray-600 mb-3">
-                    {restaurant.cuisine} | {restaurant.halalType}
-                    {restaurant.location ? ` | ${restaurant.location}` : ''}
-                  </p>
-                  <p className="text-gray-500 text-sm">{restaurant.reviews}</p>
-                </div>
-              </li>
-            ))}
+                  {/* Text Section */}
+                  <div className="p-6">
+                    <h4 className="text-2xl font-semibold mb-2 text-gray-800">{restaurant.name}</h4>
+                    <p className="text-gray-600 mb-3">
+                      {restaurant.cuisine} | {restaurant.halalType}
+                      {restaurant.location ? ` | ${restaurant.location}` : ''}
+                    </p>
+                    <p className="text-gray-500 text-sm">{restaurant.reviews}</p>
+                  </div>
+                </li>
+              );
+            })}
           </ul>
         </div>
       ))}
