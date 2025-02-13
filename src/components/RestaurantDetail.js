@@ -4,17 +4,16 @@ import { useParams } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
 
 const RestaurantDetail = () => {
-  const { id } = useParams(); // Extract the restaurant ID from the URL
+  // Extract the restaurant ID from the URL parameters.
+  const { id } = useParams();
   const [restaurant, setRestaurant] = useState(null);
   const [reviews, setReviews] = useState([]);
-  const [newReview, setNewReview] = useState({
-    rating: '',
-    comment: '',
-  });
+  const [newReview, setNewReview] = useState({ rating: '', comment: '' });
 
-  // Fetch restaurant details using the ID from URL
+  // Fetch the restaurant details using the provided id.
   useEffect(() => {
     if (!id) return;
+
     const fetchRestaurant = async () => {
       const { data, error } = await supabase
         .from('restaurants')
@@ -31,9 +30,10 @@ const RestaurantDetail = () => {
     fetchRestaurant();
   }, [id]);
 
-  // Fetch reviews for this restaurant
+  // Fetch reviews for this restaurant.
   useEffect(() => {
     if (!id) return;
+
     const fetchReviews = async () => {
       const { data, error } = await supabase
         .from('reviews')
@@ -50,33 +50,42 @@ const RestaurantDetail = () => {
     fetchReviews();
   }, [id]);
 
+  // Handle changes in the review form.
   const handleReviewChange = (e) => {
     const { name, value } = e.target;
     setNewReview((prev) => ({ ...prev, [name]: value }));
   };
 
+  // Handle submission of a new review.
   const handleReviewSubmit = async (e) => {
     e.preventDefault();
 
     const reviewToInsert = {
-      restaurant_id: id, // Use the id from URL
+      restaurant_id: id,
       rating: newReview.rating,
       comment: newReview.comment,
     };
 
+    // Insert the new review and ask for the inserted row to be returned.
     const { data, error } = await supabase
       .from('reviews')
-      .insert([reviewToInsert]);
+      .insert([reviewToInsert], { returning: 'representation' });
+
     if (error) {
       console.error("Error adding review:", error);
       alert("Error adding review");
+    } else if (!data || data.length === 0) {
+      console.error("No data returned after insert.");
+      alert("Error: No review data returned.");
     } else {
-      // Prepend the new review to the reviews list
+      // Prepend the new review to the reviews list.
       setReviews((prev) => [data[0], ...prev]);
+      // Reset the review form.
       setNewReview({ rating: '', comment: '' });
     }
   };
 
+  // If restaurant details have not loaded yet, show a loading indicator.
   if (!restaurant) {
     return <div>Loading restaurant details...</div>;
   }
