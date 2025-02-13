@@ -45,21 +45,18 @@ const RestaurantList = ({
       {Object.keys(groupedRestaurants).map((groupKey) => (
         <div key={groupKey} className="mb-12">
           {/* Group Title */}
-          <h3 className="text-3xl font-bold mb-6 text-indigo-600">{groupKey}</h3>
+          <h3 className="text-3xl font-bold mb-6 text-pink-500">{groupKey}</h3>
 
           {/* Responsive Grid */}
           <ul className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
             {groupedRestaurants[groupKey].map((restaurant) => {
-              // Log keys for debugging purposes
               console.log(`Restaurant object keys for ${restaurant.name}:`, Object.keys(restaurant));
-              
-              // Use the correct column (restaurant.image)
-              const imageUrl = restaurant.image;
+              const imageUrl = restaurant.image; // Updated column name
 
               return (
                 <li
                   key={restaurant.id}
-                  className="bg-white rounded-xl shadow-md transform transition-transform hover:-translate-y-1 hover:shadow-2xl cursor-pointer overflow-hidden"
+                  className="bg-white rounded-xl overflow-hidden transform transition-all hover:scale-105 hover:shadow-2xl cursor-pointer border border-gray-200"
                 >
                   <div className="flex flex-col h-full">
                     {/* Image Section */}
@@ -71,32 +68,32 @@ const RestaurantList = ({
                           className="object-cover w-full h-full"
                           onError={(e) => {
                             console.error(`Failed to load image for ${restaurant.name} at URL: ${imageUrl}`);
-                            e.target.onerror = null; // Prevent looping
-                            e.target.src = '/fallback-image.png'; // Ensure fallback-image.png exists in your public folder
+                            e.target.onerror = null;
+                            e.target.src = '/fallback-image.png';
                           }}
                         />
                       </div>
                     ) : (
-                      <div className="h-48 flex items-center justify-center bg-gray-200 text-gray-500">
+                      <div className="h-48 flex items-center justify-center bg-gray-300 text-gray-700">
                         No Image
                       </div>
                     )}
 
                     {/* Text Section */}
-                    <div className="p-6 flex flex-col flex-grow">
-                      <h4 className="text-2xl font-semibold mb-2 text-gray-800">{restaurant.name}</h4>
-                      <p className="text-gray-600 mb-3">
+                    <div className="p-6 flex flex-col flex-grow bg-gradient-to-br from-white to-yellow-50">
+                      <h4 className="text-2xl font-bold mb-2 text-indigo-700">{restaurant.name}</h4>
+                      <p className="text-md font-medium text-gray-800 mb-3">
                         {restaurant.cuisine} | {restaurant.halalType}
                         {restaurant.location ? ` | ${restaurant.location}` : ''}
                       </p>
-                      <p className="text-gray-500 text-sm flex-grow">{restaurant.reviews}</p>
+                      <p className="text-gray-600 text-sm flex-grow">{restaurant.reviews}</p>
                       <div className="mt-4">
                         <button
                           onClick={() => {
                             console.log(`View details clicked for ${restaurant.name}`);
                             onSelectRestaurant(restaurant);
                           }}
-                          className="text-indigo-600 font-semibold hover:text-indigo-800 focus:outline-none"
+                          className="bg-pink-500 text-white font-semibold px-4 py-2 rounded-full shadow hover:bg-pink-600 focus:outline-none focus:ring-2 focus:ring-pink-400"
                         >
                           View Details &rarr;
                         </button>
