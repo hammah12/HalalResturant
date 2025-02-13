@@ -4,7 +4,8 @@ import React from 'react';
 const RestaurantDetailModal = ({ restaurant, onClose }) => {
   if (!restaurant) return null;
 
-  const imageUrl = restaurant.image; // Using the correct column name
+  // Use the correct column for the image
+  const imageUrl = restaurant.image;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
@@ -54,11 +55,28 @@ const RestaurantDetailModal = ({ restaurant, onClose }) => {
               {restaurant.name}
             </h2>
             <p className="text-gray-800 font-medium mb-2">
-              {restaurant.cuisine} | {restaurant.halalType} 
+              {restaurant.cuisine} | {restaurant.halalType}
               {restaurant.location ? ` | ${restaurant.location}` : ''}
             </p>
+            {restaurant.address && (
+              <p className="text-gray-700 mb-2">
+                <strong>Address:</strong> {restaurant.address}
+              </p>
+            )}
+            {restaurant.google && (
+              <p className="text-gray-700 mb-2">
+                <strong>Google:</strong>{" "}
+                <a 
+                  href={restaurant.google} 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="text-indigo-600 underline hover:text-indigo-800"
+                >
+                  View on Google Maps
+                </a>
+              </p>
+            )}
             <p className="text-gray-600 mb-4">{restaurant.reviews}</p>
-            {/* Additional restaurant details can be added here */}
             <button 
               onClick={onClose} 
               className="mt-4 bg-pink-500 text-white font-semibold px-6 py-2 rounded-full shadow hover:bg-pink-600 focus:outline-none focus:ring-2 focus:ring-pink-400"
