@@ -1,15 +1,34 @@
 // src/components/RestaurantDetailModal.js
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 
 const RestaurantDetailModal = ({ restaurant, onClose, user }) => {
   if (!restaurant) return null;
-  const imageUrl = restaurant.image;
-  
-  // Local state for new review and to track favorite status
+
+  const imageUrl = restaurant.image; // Using the 'image' column
+
+  // Local state for review submission and fetched reviews
   const [reviewContent, setReviewContent] = useState('');
+  const [reviews, setReviews] = useState([]);
   const [isFavorited, setIsFavorited] = useState(false);
-  const [reviews, setReviews] = useState([]); // You could load these from Supabase on modal open
+
+  // Fetch reviews for the restaurant when the modal opens
+  useEffect(() => {
+    if (!restaurant) return;
+    const fetchReviews = async () => {
+      const { data, error } = await supabase
+        .from('reviews')
+        .select('*')
+        .eq('restaurant_id', restaurant.id)
+        .order('created_at', { ascending: false });
+      if (error) {
+        console.error("Error fetching reviews:", error);
+      } else {
+        setReviews(data);
+      }
+    };
+    fetchReviews();
+  }, [restaurant]);
 
   // Function to add a restaurant to favorites
   const handleAddFavorite = async () => {
@@ -37,8 +56,17 @@ const RestaurantDetailModal = ({ restaurant, onClose, user }) => {
       if (error) throw error;
       console.log("Review submitted:", data);
       setReviewContent('');
-      // Optionally, update your local reviews state here (or refetch reviews)
-      setReviews(prev => [...prev, ...data]);
+      // Optionally, update your local reviews state by re-fetching reviews:
+      const { data: updatedReviews, error: fetchError } = await supabase
+        .from('reviews')
+        .select('*')
+        .eq('restaurant_id', restaurant.id)
+        .order('created_at', { ascending: false });
+      if (fetchError) {
+        console.error("Error fetching reviews:", fetchError);
+      } else {
+        setReviews(updatedReviews);
+      }
     } catch (error) {
       console.error("Error submitting review:", error.message);
     }
@@ -111,6 +139,7 @@ const RestaurantDetailModal = ({ restaurant, onClose, user }) => {
               </p>
             )}
             <p className="text-gray-600 mb-4">{restaurant.reviews}</p>
+            
             {/* Favorite Button */}
             {user && (
               <div className="flex space-x-4 mb-4">
@@ -125,6 +154,7 @@ const RestaurantDetailModal = ({ restaurant, onClose, user }) => {
                 </button>
               </div>
             )}
+
             {/* Review Submission Form */}
             {user && (
               <form onSubmit={handleSubmitReview} className="mb-4">
@@ -143,6 +173,24 @@ const RestaurantDetailModal = ({ restaurant, onClose, user }) => {
                 </button>
               </form>
             )}
+
+            {/* Reviews List */}
+            {reviews.length > 0 && (
+              <div className="mt-6">
+                <h3 className="text-xl font-semibold text-gray-800 mb-2">Reviews</h3>
+                <ul className="space-y-2 max-h-48 overflow-y-auto">
+                  {reviews.map((rev) => (
+                    <li key={rev.id} className="p-3 bg-gray-100 rounded">
+                      <p className="text-gray-700">{rev.content}</p>
+                      <span className="text-gray-500 text-xs">
+                        {new Date(rev.created_at).toLocaleString()}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
             <button 
               onClick={onClose} 
               className="mt-4 bg-pink-500 text-white font-semibold px-6 py-2 rounded-full shadow hover:bg-pink-600 focus:outline-none focus:ring-2 focus:ring-pink-400"
