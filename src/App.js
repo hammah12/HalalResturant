@@ -69,7 +69,7 @@ const Home = ({
 
         <RestaurantList 
           restaurants={restaurants} 
-          onSelectRestaurant={onSelectRestaurant} // should be called with restaurant.id
+          onSelectRestaurant={onSelectRestaurant} // Should be called with restaurant.id
           groupingOption={groupingOption}
           searchTerm={searchTerm}
           sortOption={sortOption}
@@ -189,9 +189,11 @@ const App = () => {
     }
   };
 
-  // Use this function when a restaurant is selected from the list.
-  const handleSelectRestaurant = (restaurantId) => {
-    // restaurantId should be a string (UUID). Ensure RestaurantList calls this with restaurant.id.
+  // Update this function to extract the id if an object is passed.
+  const handleSelectRestaurant = (restaurantOrId) => {
+    const restaurantId = (typeof restaurantOrId === 'object' && restaurantOrId !== null)
+      ? restaurantOrId.id
+      : restaurantOrId;
     navigate(`/restaurant/${restaurantId}`);
   };
 
