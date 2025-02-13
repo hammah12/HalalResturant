@@ -1,23 +1,59 @@
 // src/components/RestaurantDetailModal.js
-import React from 'react';
+import React, { useState } from 'react';
+import { supabase } from '../supabaseClient';
 
-const RestaurantDetailModal = ({ restaurant, onClose }) => {
+const RestaurantDetailModal = ({ restaurant, onClose, user }) => {
   if (!restaurant) return null;
-
-  // Use the correct column for the image
   const imageUrl = restaurant.image;
+  
+  // Local state for new review and to track favorite status
+  const [reviewContent, setReviewContent] = useState('');
+  const [isFavorited, setIsFavorited] = useState(false);
+  const [reviews, setReviews] = useState([]); // You could load these from Supabase on modal open
+
+  // Function to add a restaurant to favorites
+  const handleAddFavorite = async () => {
+    if (!user) return;
+    try {
+      const { data, error } = await supabase
+        .from('favorites')
+        .insert([{ restaurant_id: restaurant.id, user_id: user.id }]);
+      if (error) throw error;
+      setIsFavorited(true);
+      console.log("Added to favorites:", data);
+    } catch (error) {
+      console.error("Error adding favorite:", error.message);
+    }
+  };
+
+  // Function to submit a review
+  const handleSubmitReview = async (e) => {
+    e.preventDefault();
+    if (!user || !reviewContent) return;
+    try {
+      const { data, error } = await supabase
+        .from('reviews')
+        .insert([{ restaurant_id: restaurant.id, user_id: user.id, content: reviewContent }]);
+      if (error) throw error;
+      console.log("Review submitted:", data);
+      setReviewContent('');
+      // Optionally, update your local reviews state here (or refetch reviews)
+      setReviews(prev => [...prev, ...data]);
+    } catch (error) {
+      console.error("Error submitting review:", error.message);
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      {/* Modal backdrop */}
+      {/* Modal Backdrop */}
       <div 
         className="fixed inset-0 bg-black opacity-50" 
         onClick={onClose}
       ></div>
 
-      {/* Modal content container */}
+      {/* Modal Content */}
       <div className="relative bg-white rounded-xl shadow-2xl overflow-hidden w-full max-w-3xl mx-auto">
-        {/* Close Button */}
         <div className="flex justify-end p-4">
           <button 
             onClick={onClose} 
@@ -30,8 +66,6 @@ const RestaurantDetailModal = ({ restaurant, onClose }) => {
             </svg>
           </button>
         </div>
-
-        {/* Modal content */}
         <div className="flex flex-col md:flex-row">
           {/* Image Section */}
           {imageUrl && (
@@ -77,6 +111,38 @@ const RestaurantDetailModal = ({ restaurant, onClose }) => {
               </p>
             )}
             <p className="text-gray-600 mb-4">{restaurant.reviews}</p>
+            {/* Favorite Button */}
+            {user && (
+              <div className="flex space-x-4 mb-4">
+                <button 
+                  onClick={handleAddFavorite}
+                  className={`bg-green-500 text-white font-semibold px-4 py-2 rounded-full shadow hover:bg-green-600 transition-colors duration-300 ${
+                    isFavorited ? 'opacity-50 cursor-not-allowed' : ''
+                  }`}
+                  disabled={isFavorited}
+                >
+                  {isFavorited ? 'Favorited' : 'Add to Favorites'}
+                </button>
+              </div>
+            )}
+            {/* Review Submission Form */}
+            {user && (
+              <form onSubmit={handleSubmitReview} className="mb-4">
+                <textarea
+                  value={reviewContent}
+                  onChange={(e) => setReviewContent(e.target.value)}
+                  placeholder="Write your review here..."
+                  className="w-full p-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  rows={3}
+                />
+                <button 
+                  type="submit"
+                  className="mt-2 bg-pink-500 text-white font-semibold px-4 py-2 rounded-full shadow hover:bg-pink-600 focus:outline-none focus:ring-2 focus:ring-pink-400"
+                >
+                  Submit Review
+                </button>
+              </form>
+            )}
             <button 
               onClick={onClose} 
               className="mt-4 bg-pink-500 text-white font-semibold px-6 py-2 rounded-full shadow hover:bg-pink-600 focus:outline-none focus:ring-2 focus:ring-pink-400"
