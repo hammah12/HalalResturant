@@ -21,13 +21,12 @@ const RestaurantList = ({
     if (sortOption === 'name') {
       return a.name.localeCompare(b.name);
     } else if (sortOption === 'rating') {
-      // If you have a numeric rating field, adjust as needed
       return (b.rating || 0) - (a.rating || 0);
     }
     return 0;
   });
 
-  // Group restaurants based on selected option (location, cuisine, or none)
+  // Group restaurants based on selected option (location, cuisine or none)
   const groupRestaurants = (restaurants, groupBy) => {
     if (!groupBy || groupBy === 'none') return { All: restaurants };
 
@@ -51,7 +50,12 @@ const RestaurantList = ({
           {/* Responsive Grid */}
           <ul className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
             {groupedRestaurants[groupKey].map((restaurant) => {
-              console.log('Rendering restaurant:', restaurant.name, 'Image URL:', restaurant.image_url);
+              // Log all keys for debugging purposes
+              console.log(`Restaurant object keys for ${restaurant.name}:`, Object.keys(restaurant));
+              
+              // Use the correct column: restaurant.image
+              const imageUrl = restaurant.image;
+
               return (
                 <li
                   key={restaurant.id}
@@ -59,17 +63,16 @@ const RestaurantList = ({
                   className="bg-white rounded-xl shadow-md hover:shadow-xl transition-shadow cursor-pointer border border-transparent hover:border-indigo-300 overflow-hidden"
                 >
                   {/* Image Section */}
-                  {restaurant.image_url ? (
+                  {imageUrl ? (
                     <div className="h-48 overflow-hidden">
                       <img
-                        src={restaurant.image_url}
+                        src={imageUrl}
                         alt={restaurant.name}
                         className="object-cover w-full h-full"
                         onError={(e) => {
-                          console.error(`Failed to load image for ${restaurant.name} at URL: ${restaurant.image_url}`);
-                          e.target.onerror = null; // Prevents looping
-                          // Optionally, set a fallback image:
-                          e.target.src = '/fallback-image.png';
+                          console.error(`Failed to load image for ${restaurant.name} at URL: ${imageUrl}`);
+                          e.target.onerror = null; // Prevent looping
+                          e.target.src = '/fallback-image.png'; // Ensure this fallback exists in your public folder
                         }}
                       />
                     </div>
