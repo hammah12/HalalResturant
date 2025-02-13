@@ -10,8 +10,8 @@ const RestaurantList = ({
   halalFilter
 }) => {
   // Filter restaurants based on search term and halal filter
-  const filteredRestaurants = restaurants.filter(restaurant => {
-    const matchesSearch = restaurant.name.toLowerCase().includes(searchTerm.toLowerCase());
+  const filteredRestaurants = restaurants.filter((restaurant) => {
+    const matchesSearch = restaurant.name?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesHalalFilter = halalFilter ? restaurant.halalType === halalFilter : true;
     return matchesSearch && matchesHalalFilter;
   });
@@ -21,6 +21,7 @@ const RestaurantList = ({
     if (sortOption === 'name') {
       return a.name.localeCompare(b.name);
     } else if (sortOption === 'rating') {
+      // If you have a numeric rating field, adjust as needed
       return (b.rating || 0) - (a.rating || 0);
     }
     return 0;
@@ -44,20 +45,42 @@ const RestaurantList = ({
     <div>
       {Object.keys(groupedRestaurants).map((groupKey) => (
         <div key={groupKey} className="mb-12">
+          {/* Group Title */}
           <h3 className="text-3xl font-bold mb-6 text-indigo-600">{groupKey}</h3>
+
+          {/* Responsive Grid */}
           <ul className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
             {groupedRestaurants[groupKey].map((restaurant) => (
-              <li 
-                key={restaurant.id} 
+              <li
+                key={restaurant.id}
                 onClick={() => onSelectRestaurant(restaurant)}
-                className="p-6 bg-white rounded-xl shadow-md hover:shadow-xl transition-shadow cursor-pointer border border-transparent hover:border-indigo-300"
+                className="bg-white rounded-xl shadow-md hover:shadow-xl transition-shadow cursor-pointer
+                           border border-transparent hover:border-indigo-300 overflow-hidden"
               >
-                <h4 className="text-2xl font-semibold mb-2 text-gray-800">{restaurant.name}</h4>
-                <p className="text-gray-600 mb-3">
-                  {restaurant.cuisine} | {restaurant.halalType}
-                  {restaurant.location ? ` | ${restaurant.location}` : ''}
-                </p>
-                <p className="text-gray-500 text-sm">{restaurant.reviews}</p>
+                {/* Image Section */}
+                {restaurant.image_url ? (
+                  <div className="h-48 overflow-hidden">
+                    <img
+                      src={restaurant.image_url}
+                      alt={restaurant.name}
+                      className="object-cover w-full h-full"
+                    />
+                  </div>
+                ) : (
+                  <div className="h-48 flex items-center justify-center bg-gray-200 text-gray-500">
+                    No Image
+                  </div>
+                )}
+
+                {/* Text Section */}
+                <div className="p-6">
+                  <h4 className="text-2xl font-semibold mb-2 text-gray-800">{restaurant.name}</h4>
+                  <p className="text-gray-600 mb-3">
+                    {restaurant.cuisine} | {restaurant.halalType}
+                    {restaurant.location ? ` | ${restaurant.location}` : ''}
+                  </p>
+                  <p className="text-gray-500 text-sm">{restaurant.reviews}</p>
+                </div>
               </li>
             ))}
           </ul>
