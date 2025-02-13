@@ -3,17 +3,46 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
 
+// Helper function to render star icons based on rating (1-5)
+const renderStars = (rating) => {
+  const stars = [];
+  for (let i = 1; i <= 5; i++) {
+    if (i <= rating) {
+      stars.push(
+        <svg
+          key={i}
+          className="w-5 h-5 text-yellow-400 inline-block"
+          fill="currentColor"
+          viewBox="0 0 20 20"
+        >
+          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.982a1 1 0 00.95.69h4.21c.969 0 1.371 1.24.588 1.81l-3.404 2.47a1 1 0 00-.364 1.118l1.286 3.982c.3.921-.755 1.688-1.54 1.118l-3.404-2.47a1 1 0 00-1.175 0l-3.404 2.47c-.784.57-1.838-.197-1.539-1.118l1.286-3.982a1 1 0 00-.364-1.118L2.225 9.41c-.783-.57-.38-1.81.588-1.81h4.21a1 1 0 00.95-.69l1.286-3.982z" />
+        </svg>
+      );
+    } else {
+      stars.push(
+        <svg
+          key={i}
+          className="w-5 h-5 text-gray-300 inline-block"
+          fill="currentColor"
+          viewBox="0 0 20 20"
+        >
+          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.982a1 1 0 00.95.69h4.21c.969 0 1.371 1.24.588 1.81l-3.404 2.47a1 1 0 00-.364 1.118l1.286 3.982c.3.921-.755 1.688-1.54 1.118l-3.404-2.47a1 1 0 00-1.175 0l-3.404 2.47c-.784.57-1.838-.197-1.539-1.118l1.286-3.982a1 1 0 00-.364-1.118L2.225 9.41c-.783-.57-.38-1.81.588-1.81h4.21a1 1 0 00.95-.69l1.286-3.982z" />
+        </svg>
+      );
+    }
+  }
+  return stars;
+};
+
 const RestaurantDetail = () => {
-  // Extract the restaurant ID from the URL parameters.
-  const { id } = useParams();
+  const { id } = useParams(); // Extract restaurant ID from URL
   const [restaurant, setRestaurant] = useState(null);
   const [reviews, setReviews] = useState([]);
   const [newReview, setNewReview] = useState({ rating: '', comment: '' });
 
-  // Fetch the restaurant details using the provided id.
+  // Fetch restaurant details
   useEffect(() => {
     if (!id) return;
-
     const fetchRestaurant = async () => {
       const { data, error } = await supabase
         .from('restaurants')
@@ -26,14 +55,12 @@ const RestaurantDetail = () => {
         setRestaurant(data);
       }
     };
-
     fetchRestaurant();
   }, [id]);
 
-  // Fetch reviews for this restaurant.
+  // Fetch reviews for this restaurant
   useEffect(() => {
     if (!id) return;
-
     const fetchReviews = async () => {
       const { data, error } = await supabase
         .from('reviews')
@@ -46,17 +73,16 @@ const RestaurantDetail = () => {
         setReviews(data);
       }
     };
-
     fetchReviews();
   }, [id]);
 
-  // Handle changes in the review form.
+  // Handle changes in the review form
   const handleReviewChange = (e) => {
     const { name, value } = e.target;
     setNewReview((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Handle submission of a new review.
+  // Handle submission of a new review
   const handleReviewSubmit = async (e) => {
     e.preventDefault();
 
@@ -66,7 +92,7 @@ const RestaurantDetail = () => {
       comment: newReview.comment,
     };
 
-    // Insert the new review and ask for the inserted row to be returned.
+    // Insert the new review and return the inserted row
     const { data, error } = await supabase
       .from('reviews')
       .insert([reviewToInsert], { returning: 'representation' });
@@ -75,17 +101,28 @@ const RestaurantDetail = () => {
       console.error("Error adding review:", error);
       alert("Error adding review");
     } else if (!data || data.length === 0) {
-      console.error("No data returned after insert.");
-      alert("Error: No review data returned.");
+      // Fallback: Re-fetch reviews if no data returned
+      console.error("No data returned after insert, re-fetching reviews.");
+      const { data: fetchedReviews, error: fetchError } = await supabase
+        .from('reviews')
+        .select('*')
+        .eq('restaurant_id', id)
+        .order('created_at', { ascending: false });
+      if (fetchError) {
+        console.error("Error fetching reviews after insert:", fetchError);
+        alert("Error fetching reviews after insert");
+      } else {
+        setReviews(fetchedReviews);
+        setNewReview({ rating: '', comment: '' });
+        alert("Review added successfully!");
+      }
     } else {
-      // Prepend the new review to the reviews list.
       setReviews((prev) => [data[0], ...prev]);
-      // Reset the review form.
       setNewReview({ rating: '', comment: '' });
+      alert("Review added successfully!");
     }
   };
 
-  // If restaurant details have not loaded yet, show a loading indicator.
   if (!restaurant) {
     return <div>Loading restaurant details...</div>;
   }
@@ -112,7 +149,7 @@ const RestaurantDetail = () => {
         <h2 className="text-2xl font-semibold mb-4">Reviews</h2>
 
         {/* Review Form */}
-        <div className="review-form mb-6 p-4 border rounded shadow">
+        <div className="review-form mb-6 p-4 border rounded shadow bg-white">
           <h3 className="text-xl font-medium mb-2">Add a Review</h3>
           <form onSubmit={handleReviewSubmit}>
             <div className="mb-2">
@@ -131,6 +168,8 @@ const RestaurantDetail = () => {
                 <option value="4">4</option>
                 <option value="5">5</option>
               </select>
+              {/* Optionally, display the stars as a preview */}
+              <span className="ml-2">{renderStars(Number(newReview.rating))}</span>
             </div>
             <div className="mb-2">
               <label className="block mb-1">Comment:</label>
@@ -152,14 +191,20 @@ const RestaurantDetail = () => {
         </div>
 
         {/* Display Reviews */}
-        <div className="reviews-list">
+        <div className="reviews-list space-y-4">
           {reviews.length === 0 ? (
             <p>No reviews yet. Be the first to review!</p>
           ) : (
             reviews.map((review) => (
-              <div key={review.id} className="review p-4 mb-4 border rounded">
-                <p className="font-semibold">Rating: {review.rating}</p>
-                <p>{review.comment}</p>
+              <div
+                key={review.id}
+                className="review p-4 border rounded bg-white shadow"
+              >
+                <div className="flex items-center mb-2">
+                  <span className="mr-2 font-semibold">Rating:</span>
+                  {renderStars(Number(review.rating))}
+                </div>
+                <p className="mb-1">{review.comment}</p>
                 {review.created_at && (
                   <p className="text-sm text-gray-500">
                     {new Date(review.created_at).toLocaleString()}
