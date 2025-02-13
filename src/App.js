@@ -16,6 +16,7 @@ const App = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortOption, setSortOption] = useState('name');
   const [halalFilter, setHalalFilter] = useState('');
+  const [groupingOption, setGroupingOption] = useState('location'); // New grouping state
   const [selectedRestaurant, setSelectedRestaurant] = useState(null);
 
   // ---------------------------
@@ -36,16 +37,15 @@ const App = () => {
   // useEffect: Check Auth & Fetch Restaurants
   // ---------------------------
   useEffect(() => {
-
     const fetchRestaurants = async () => {
-  const { data, error } = await supabase.from('restaurants').select('*');
-  if (error) {
-    console.error("Error fetching restaurants:", error);
-  } else {
-    console.log("Fetched restaurants:", data); // Debugging log
-    setRestaurants(data);
-  }
-};
+      const { data, error } = await supabase.from('restaurants').select('*');
+      if (error) {
+        console.error("Error fetching restaurants:", error);
+      } else {
+        console.log("Fetched restaurants:", data);
+        setRestaurants(data);
+      }
+    };
 
     const getSession = async () => {
       const { data: { session }, error } = await supabase.auth.getSession();
@@ -108,30 +108,73 @@ const App = () => {
 
       <HeroSection />
 
-      <main className="container mx-auto px-4 py-8">
-        <h2 className="text-4xl font-extrabold text-center text-gray-800 mb-6">
+      <main className="container mx-auto px-6 py-10">
+        <h2 className="text-5xl font-extrabold text-center text-gray-800 mb-8">
           Halal Restaurants in Chicago
         </h2>
-        <div className="flex flex-wrap gap-4 justify-center mb-6">
-          <input type="text" placeholder="Search..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="p-3 rounded-lg border border-gray-300" />
-          <select value={sortOption} onChange={(e) => setSortOption(e.target.value)} className="p-3 rounded-lg border border-gray-300">
+        <div className="flex flex-wrap justify-center gap-4 mb-10">
+          <input 
+            type="text" 
+            placeholder="Search restaurants..." 
+            value={searchTerm} 
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full md:w-1/3 p-4 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          />
+          <select 
+            value={sortOption} 
+            onChange={(e) => setSortOption(e.target.value)}
+            className="w-full md:w-1/5 p-4 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          >
             <option value="name">Sort by Name</option>
             <option value="rating">Sort by Rating</option>
           </select>
-          <select value={halalFilter} onChange={(e) => setHalalFilter(e.target.value)} className="p-3 rounded-lg border border-gray-300">
+          <select 
+            value={halalFilter} 
+            onChange={(e) => setHalalFilter(e.target.value)}
+            className="w-full md:w-1/5 p-4 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          >
             <option value="">All Halal Types</option>
             <option value="HMS">HMS</option>
             <option value="HFSAA">HFSAA</option>
             <option value="Self-Reported">Self-Reported</option>
           </select>
+          <select 
+            value={groupingOption} 
+            onChange={(e) => setGroupingOption(e.target.value)}
+            className="w-full md:w-1/5 p-4 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          >
+            <option value="location">Group by Location</option>
+            <option value="cuisine">Group by Cuisine</option>
+            <option value="none">No Grouping</option>
+          </select>
         </div>
 
-        <RestaurantList restaurants={restaurants} onSelectRestaurant={setSelectedRestaurant} />
+        <RestaurantList 
+          restaurants={restaurants} 
+          onSelectRestaurant={setSelectedRestaurant} 
+          groupingOption={groupingOption}
+          searchTerm={searchTerm}
+          sortOption={sortOption}
+          halalFilter={halalFilter}
+        />
       </main>
 
       {showAddModal && <AddRestaurantForm onClose={() => setShowAddModal(false)} />}
-      {selectedRestaurant && <RestaurantDetailModal restaurant={selectedRestaurant} onClose={() => setSelectedRestaurant(null)} />}
-      {showAuthModal && <AuthModal authMode={authMode} setAuthMode={setAuthMode} email={email} setEmail={setEmail} password={password} setPassword={setPassword} onClose={() => setShowAuthModal(false)} />}
+      {selectedRestaurant && 
+        <RestaurantDetailModal 
+          restaurant={selectedRestaurant} 
+          onClose={() => setSelectedRestaurant(null)} 
+        />}
+      {showAuthModal && 
+        <AuthModal 
+          authMode={authMode} 
+          setAuthMode={setAuthMode} 
+          email={email} 
+          setEmail={setEmail} 
+          password={password} 
+          setPassword={setPassword} 
+          onClose={() => setShowAuthModal(false)} 
+        />}
     </div>
   );
 };
