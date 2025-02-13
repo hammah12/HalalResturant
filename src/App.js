@@ -10,12 +10,17 @@ import AuthModal from './components/AuthModal';
 import AddRestaurantForm from './components/AddRestaurantForm';
 import UserProfile from './components/UserProfile';
 
+// Home component now receives individual setter functions for filters.
 const Home = ({
   restaurants,
   searchTerm,
   sortOption,
   halalFilter,
   groupingOption,
+  setSearchTerm,
+  setSortOption,
+  setHalalFilter,
+  setGroupingOption,
   onSelectRestaurant,
 }) => {
   return (
@@ -30,12 +35,12 @@ const Home = ({
             type="text" 
             placeholder="Search restaurants..." 
             value={searchTerm} 
-            onChange={(e) => onSelectRestaurant(e.target.value)}
+            onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full md:w-1/3 p-4 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
           />
           <select 
             value={sortOption} 
-            onChange={(e) => onSelectRestaurant(e.target.value)}
+            onChange={(e) => setSortOption(e.target.value)}
             className="w-full md:w-1/5 p-4 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
           >
             <option value="name">Sort by Name</option>
@@ -43,7 +48,7 @@ const Home = ({
           </select>
           <select 
             value={halalFilter} 
-            onChange={(e) => onSelectRestaurant(e.target.value)}
+            onChange={(e) => setHalalFilter(e.target.value)}
             className="w-full md:w-1/5 p-4 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
           >
             <option value="">All Halal Types</option>
@@ -53,7 +58,7 @@ const Home = ({
           </select>
           <select 
             value={groupingOption} 
-            onChange={(e) => onSelectRestaurant(e.target.value)}
+            onChange={(e) => setGroupingOption(e.target.value)}
             className="w-full md:w-1/5 p-4 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
           >
             <option value="location">Group by Location</option>
@@ -64,7 +69,7 @@ const Home = ({
 
         <RestaurantList 
           restaurants={restaurants} 
-          onSelectRestaurant={onSelectRestaurant} 
+          onSelectRestaurant={onSelectRestaurant} // should be called with restaurant.id
           groupingOption={groupingOption}
           searchTerm={searchTerm}
           sortOption={sortOption}
@@ -184,9 +189,9 @@ const App = () => {
     }
   };
 
-  // New function to handle restaurant selection
+  // Use this function when a restaurant is selected from the list.
   const handleSelectRestaurant = (restaurantId) => {
-    // Navigate to the full restaurant detail page
+    // restaurantId should be a string (UUID). Ensure RestaurantList calls this with restaurant.id.
     navigate(`/restaurant/${restaurantId}`);
   };
 
@@ -210,6 +215,10 @@ const App = () => {
               sortOption={sortOption}
               halalFilter={halalFilter}
               groupingOption={groupingOption}
+              setSearchTerm={setSearchTerm}
+              setSortOption={setSortOption}
+              setHalalFilter={setHalalFilter}
+              setGroupingOption={setGroupingOption}
               onSelectRestaurant={handleSelectRestaurant}
             />
           }
