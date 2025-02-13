@@ -1,21 +1,10 @@
-// RestaurantDetail.js
+// src/components/RestaurantDetail.js
 import React, { useEffect, useState } from 'react';
+import { useParams } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
 
-/*
-  RestaurantDetail Component:
-  - Displays details of a specific restaurant.
-  - Fetches restaurant data and associated reviews from Supabase.
-  - Allows users to add a new review via a review form.
-  
-  Expected Database Schema:
-  - restaurants: { id, name, description, address, rating, image, ... }
-  - reviews: { id, restaurant_id, rating, comment, created_at, ... }
-  
-  Props:
-  - restaurantId: The ID of the restaurant to display.
-*/
-const RestaurantDetail = ({ restaurantId }) => {
+const RestaurantDetail = () => {
+  const { id } = useParams(); // Extract the restaurant ID from the URL
   const [restaurant, setRestaurant] = useState(null);
   const [reviews, setReviews] = useState([]);
   const [newReview, setNewReview] = useState({
@@ -23,13 +12,14 @@ const RestaurantDetail = ({ restaurantId }) => {
     comment: '',
   });
 
-  // Fetch restaurant details based on restaurantId
+  // Fetch restaurant details using the ID from URL
   useEffect(() => {
+    if (!id) return;
     const fetchRestaurant = async () => {
       const { data, error } = await supabase
         .from('restaurants')
         .select('*')
-        .eq('id', restaurantId)
+        .eq('id', id)
         .single();
       if (error) {
         console.error("Error fetching restaurant:", error);
@@ -39,15 +29,16 @@ const RestaurantDetail = ({ restaurantId }) => {
     };
 
     fetchRestaurant();
-  }, [restaurantId]);
+  }, [id]);
 
   // Fetch reviews for this restaurant
   useEffect(() => {
+    if (!id) return;
     const fetchReviews = async () => {
       const { data, error } = await supabase
         .from('reviews')
         .select('*')
-        .eq('restaurant_id', restaurantId)
+        .eq('restaurant_id', id)
         .order('created_at', { ascending: false });
       if (error) {
         console.error("Error fetching reviews:", error);
@@ -57,20 +48,18 @@ const RestaurantDetail = ({ restaurantId }) => {
     };
 
     fetchReviews();
-  }, [restaurantId]);
+  }, [id]);
 
-  // Handle changes in the review form inputs
   const handleReviewChange = (e) => {
     const { name, value } = e.target;
     setNewReview((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Handle submission of a new review
   const handleReviewSubmit = async (e) => {
     e.preventDefault();
 
     const reviewToInsert = {
-      restaurant_id: restaurantId,
+      restaurant_id: id, // Use the id from URL
       rating: newReview.rating,
       comment: newReview.comment,
     };
@@ -82,13 +71,12 @@ const RestaurantDetail = ({ restaurantId }) => {
       console.error("Error adding review:", error);
       alert("Error adding review");
     } else {
-      // Prepend the new review to the list of reviews
+      // Prepend the new review to the reviews list
       setReviews((prev) => [data[0], ...prev]);
       setNewReview({ rating: '', comment: '' });
     }
   };
 
-  // Render a loading state if restaurant data is not yet available
   if (!restaurant) {
     return <div>Loading restaurant details...</div>;
   }
