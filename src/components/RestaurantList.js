@@ -91,7 +91,8 @@ const RestaurantList = ({
                         <button
                           onClick={() => {
                             console.log(`View details clicked for ${restaurant.name}`);
-                            onSelectRestaurant(restaurant);
+                            // Pass only the restaurant ID
+                            onSelectRestaurant(restaurant.id);
                           }}
                           className="bg-pink-500 text-white font-semibold px-4 py-2 rounded-full shadow hover:bg-pink-600 focus:outline-none focus:ring-2 focus:ring-pink-400"
                         >
