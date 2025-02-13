@@ -1,66 +1,68 @@
+// src/components/RestaurantList.js
 import React from 'react';
-import Card from './Card';
-import CardTitle from './CardTitle';
-import CardDescription from './CardDescription';
-import CardContent from './CardContent';
 
-const RestaurantList = ({ restaurants, onSelectRestaurant }) => {
-  if (!restaurants || restaurants.length === 0) {
-    return <p className="text-center text-gray-500">No restaurants found.</p>;
-  }
+const RestaurantList = ({
+  restaurants,
+  onSelectRestaurant,
+  groupingOption,
+  searchTerm,
+  sortOption,
+  halalFilter
+}) => {
+  // Filter restaurants based on search term and halal filter
+  const filteredRestaurants = restaurants.filter(restaurant => {
+    const matchesSearch = restaurant.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesHalalFilter = halalFilter ? restaurant.halalType === halalFilter : true;
+    return matchesSearch && matchesHalalFilter;
+  });
+
+  // Sort restaurants based on selected option
+  const sortedRestaurants = [...filteredRestaurants].sort((a, b) => {
+    if (sortOption === 'name') {
+      return a.name.localeCompare(b.name);
+    } else if (sortOption === 'rating') {
+      return (b.rating || 0) - (a.rating || 0);
+    }
+    return 0;
+  });
+
+  // Group restaurants based on selected option (location, cuisine or none)
+  const groupRestaurants = (restaurants, groupBy) => {
+    if (!groupBy || groupBy === 'none') return { All: restaurants };
+
+    return restaurants.reduce((groups, restaurant) => {
+      const key = restaurant[groupBy] || 'Others';
+      if (!groups[key]) groups[key] = [];
+      groups[key].push(restaurant);
+      return groups;
+    }, {});
+  };
+
+  const groupedRestaurants = groupRestaurants(sortedRestaurants, groupingOption);
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-      {restaurants.map((restaurant) => {
-        if (!restaurant) {
-          console.warn("Skipping undefined restaurant in RestaurantList!");
-          return null; // Prevent rendering undefined objects
-        }
-
-        return (
-          <Card 
-            key={restaurant.id} 
-            restaurant={restaurant} 
-            className="bg-white shadow-md rounded-lg overflow-hidden transform hover:scale-105 transition-transform duration-300"
-          >
-            <CardContent className="p-6">
-              <CardTitle 
-                className="text-2xl font-bold text-purple-600 cursor-pointer" 
+    <div>
+      {Object.keys(groupedRestaurants).map((groupKey) => (
+        <div key={groupKey} className="mb-12">
+          <h3 className="text-3xl font-bold mb-6 text-indigo-600">{groupKey}</h3>
+          <ul className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+            {groupedRestaurants[groupKey].map((restaurant) => (
+              <li 
+                key={restaurant.id} 
                 onClick={() => onSelectRestaurant(restaurant)}
+                className="p-6 bg-white rounded-xl shadow-md hover:shadow-xl transition-shadow cursor-pointer border border-transparent hover:border-indigo-300"
               >
-                {restaurant.name}
-              </CardTitle>
-              <CardDescription className="text-gray-700 mt-2">
-                {restaurant.description}
-              </CardDescription>
-              <p className="text-gray-600 mt-2">{restaurant.address}</p>
-              <div className="flex items-center justify-between mt-4">
-                <div className="flex items-center">
-                  <span className="text-yellow-500 mr-1">★</span>
-                  <span className="text-gray-800 font-semibold">{restaurant.rating}</span>
-                </div>
-                <span className={`text-sm font-semibold py-1 px-2 rounded-full ${
-                  restaurant.halalStatus === 'HMS' ? 'bg-green-600 text-white' :
-                  restaurant.halalStatus === 'HFSAA' ? 'bg-blue-600 text-white' :
-                  'bg-orange-600 text-white'
-                }`}>
-                  {restaurant.halalStatus}
-                </span>
-              </div>
-              {restaurant.google && (
-                <a 
-                  href={restaurant.google} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-blue-500 underline mt-2 inline-block"
-                >
-                  View on Google
-                </a>
-              )}
-            </CardContent>
-          </Card>
-        );
-      })}
+                <h4 className="text-2xl font-semibold mb-2 text-gray-800">{restaurant.name}</h4>
+                <p className="text-gray-600 mb-3">
+                  {restaurant.cuisine} | {restaurant.halalType}
+                  {restaurant.location ? ` | ${restaurant.location}` : ''}
+                </p>
+                <p className="text-gray-500 text-sm">{restaurant.reviews}</p>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
     </div>
   );
 };
