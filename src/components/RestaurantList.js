@@ -26,7 +26,7 @@ const RestaurantList = ({
     return 0;
   });
 
-  // Group restaurants based on selected option (location, cuisine or none)
+  // Group restaurants based on selected option (location, cuisine, or none)
   const groupRestaurants = (restaurants, groupBy) => {
     if (!groupBy || groupBy === 'none') return { All: restaurants };
 
@@ -50,46 +50,58 @@ const RestaurantList = ({
           {/* Responsive Grid */}
           <ul className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
             {groupedRestaurants[groupKey].map((restaurant) => {
-              // Log all keys for debugging purposes
+              // Log keys for debugging purposes
               console.log(`Restaurant object keys for ${restaurant.name}:`, Object.keys(restaurant));
               
-              // Use the correct column: restaurant.image
+              // Use the correct column (restaurant.image)
               const imageUrl = restaurant.image;
 
               return (
                 <li
                   key={restaurant.id}
-                  onClick={() => onSelectRestaurant(restaurant)}
-                  className="bg-white rounded-xl shadow-md hover:shadow-xl transition-shadow cursor-pointer border border-transparent hover:border-indigo-300 overflow-hidden"
+                  className="bg-white rounded-xl shadow-md transform transition-transform hover:-translate-y-1 hover:shadow-2xl cursor-pointer overflow-hidden"
                 >
-                  {/* Image Section */}
-                  {imageUrl ? (
-                    <div className="h-48 overflow-hidden">
-                      <img
-                        src={imageUrl}
-                        alt={restaurant.name}
-                        className="object-cover w-full h-full"
-                        onError={(e) => {
-                          console.error(`Failed to load image for ${restaurant.name} at URL: ${imageUrl}`);
-                          e.target.onerror = null; // Prevent looping
-                          e.target.src = '/fallback-image.png'; // Ensure this fallback exists in your public folder
-                        }}
-                      />
-                    </div>
-                  ) : (
-                    <div className="h-48 flex items-center justify-center bg-gray-200 text-gray-500">
-                      No Image
-                    </div>
-                  )}
+                  <div className="flex flex-col h-full">
+                    {/* Image Section */}
+                    {imageUrl ? (
+                      <div className="h-48 overflow-hidden">
+                        <img
+                          src={imageUrl}
+                          alt={restaurant.name}
+                          className="object-cover w-full h-full"
+                          onError={(e) => {
+                            console.error(`Failed to load image for ${restaurant.name} at URL: ${imageUrl}`);
+                            e.target.onerror = null; // Prevent looping
+                            e.target.src = '/fallback-image.png'; // Ensure fallback-image.png exists in your public folder
+                          }}
+                        />
+                      </div>
+                    ) : (
+                      <div className="h-48 flex items-center justify-center bg-gray-200 text-gray-500">
+                        No Image
+                      </div>
+                    )}
 
-                  {/* Text Section */}
-                  <div className="p-6">
-                    <h4 className="text-2xl font-semibold mb-2 text-gray-800">{restaurant.name}</h4>
-                    <p className="text-gray-600 mb-3">
-                      {restaurant.cuisine} | {restaurant.halalType}
-                      {restaurant.location ? ` | ${restaurant.location}` : ''}
-                    </p>
-                    <p className="text-gray-500 text-sm">{restaurant.reviews}</p>
+                    {/* Text Section */}
+                    <div className="p-6 flex flex-col flex-grow">
+                      <h4 className="text-2xl font-semibold mb-2 text-gray-800">{restaurant.name}</h4>
+                      <p className="text-gray-600 mb-3">
+                        {restaurant.cuisine} | {restaurant.halalType}
+                        {restaurant.location ? ` | ${restaurant.location}` : ''}
+                      </p>
+                      <p className="text-gray-500 text-sm flex-grow">{restaurant.reviews}</p>
+                      <div className="mt-4">
+                        <button
+                          onClick={() => {
+                            console.log(`View details clicked for ${restaurant.name}`);
+                            onSelectRestaurant(restaurant);
+                          }}
+                          className="text-indigo-600 font-semibold hover:text-indigo-800 focus:outline-none"
+                        >
+                          View Details &rarr;
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </li>
               );
