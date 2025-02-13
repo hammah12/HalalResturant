@@ -38,21 +38,28 @@ const App = () => {
   // ---------------------------
   useEffect(() => {
     const fetchRestaurants = async () => {
-      const { data, error } = await supabase.from('restaurants').select('*');
-      if (error) {
-        console.error("Error fetching restaurants:", error);
-      } else {
+      try {
+        const { data, error } = await supabase.from('restaurants').select('*');
+        if (error) {
+          throw error;
+        }
         console.log("Fetched restaurants:", data);
         setRestaurants(data);
+      } catch (error) {
+        console.error("Error fetching restaurants:", error);
       }
     };
 
     const getSession = async () => {
-      const { data: { session }, error } = await supabase.auth.getSession();
-      if (error) {
-        console.error("Error getting session:", error);
-      } else {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error) {
+          throw error;
+        }
+        console.log("Current session:", session);
         setUser(session?.user ?? null);
+      } catch (error) {
+        console.error("Error getting session:", error);
       }
     };
 
@@ -60,6 +67,7 @@ const App = () => {
     fetchRestaurants();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log("Auth state changed:", event, session);
       setUser(session?.user ?? null);
     });
 
@@ -72,27 +80,38 @@ const App = () => {
   // Authentication Handlers
   // ---------------------------
   const handleSignUp = async () => {
-    const { data, error } = await supabase.auth.signUp({ email, password });
-    if (error) {
-      console.error("Error signing up:", error.message);
-    } else {
+    try {
+      const { data, error } = await supabase.auth.signUp({ email, password });
+      if (error) {
+        throw error;
+      }
       console.log("Signed up user:", data);
+    } catch (error) {
+      console.error("Error signing up:", error.message);
     }
   };
 
   const handleSignIn = async () => {
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) {
-      console.error("Error signing in:", error.message);
-    } else {
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) {
+        throw error;
+      }
       console.log("Signed in user:", data);
       setShowAuthModal(false);
+    } catch (error) {
+      console.error("Error signing in:", error.message);
     }
   };
 
   const handleSignOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        throw error;
+      }
+      console.log("Signed out successfully");
+    } catch (error) {
       console.error("Error signing out:", error.message);
     }
   };
