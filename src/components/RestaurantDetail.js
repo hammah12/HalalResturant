@@ -35,14 +35,20 @@ const renderStars = (rating) => {
 };
 
 const RestaurantDetail = () => {
-  const { id } = useParams(); // Extract restaurant ID from URL
+  // Extract the restaurant ID from the URL parameters.
+  const { id } = useParams();
   const [restaurant, setRestaurant] = useState(null);
   const [reviews, setReviews] = useState([]);
   const [newReview, setNewReview] = useState({ rating: '', comment: '' });
+  const [error, setError] = useState(null);
 
-  // Fetch restaurant details
+  // Fetch restaurant details using the provided id.
   useEffect(() => {
-    if (!id) return;
+    if (!id) {
+      setError("Invalid restaurant ID.");
+      return;
+    }
+
     const fetchRestaurant = async () => {
       const { data, error } = await supabase
         .from('restaurants')
@@ -51,16 +57,19 @@ const RestaurantDetail = () => {
         .single();
       if (error) {
         console.error("Error fetching restaurant:", error);
+        setError("Error fetching restaurant details.");
       } else {
         setRestaurant(data);
       }
     };
+
     fetchRestaurant();
   }, [id]);
 
-  // Fetch reviews for this restaurant
+  // Fetch reviews for this restaurant.
   useEffect(() => {
     if (!id) return;
+
     const fetchReviews = async () => {
       const { data, error } = await supabase
         .from('reviews')
@@ -69,20 +78,22 @@ const RestaurantDetail = () => {
         .order('created_at', { ascending: false });
       if (error) {
         console.error("Error fetching reviews:", error);
+        setError("Error fetching reviews.");
       } else {
         setReviews(data);
       }
     };
+
     fetchReviews();
   }, [id]);
 
-  // Handle changes in the review form
+  // Handle changes in the review form.
   const handleReviewChange = (e) => {
     const { name, value } = e.target;
     setNewReview((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Handle submission of a new review
+  // Handle submission of a new review.
   const handleReviewSubmit = async (e) => {
     e.preventDefault();
 
@@ -92,7 +103,7 @@ const RestaurantDetail = () => {
       comment: newReview.comment,
     };
 
-    // Insert the new review and return the inserted row
+    // Insert the new review and ask for the inserted row to be returned.
     const { data, error } = await supabase
       .from('reviews')
       .insert([reviewToInsert], { returning: 'representation' });
@@ -101,7 +112,7 @@ const RestaurantDetail = () => {
       console.error("Error adding review:", error);
       alert("Error adding review");
     } else if (!data || data.length === 0) {
-      // Fallback: Re-fetch reviews if no data returned
+      // Fallback: Re-fetch reviews if no data is returned.
       console.error("No data returned after insert, re-fetching reviews.");
       const { data: fetchedReviews, error: fetchError } = await supabase
         .from('reviews')
@@ -123,8 +134,18 @@ const RestaurantDetail = () => {
     }
   };
 
+  // If an error occurred, display it.
+  if (error) {
+    return (
+      <div className="container mx-auto p-4 text-center text-red-500">
+        {error}
+      </div>
+    );
+  }
+
+  // If restaurant details have not loaded yet, show a loading indicator.
   if (!restaurant) {
-    return <div>Loading restaurant details...</div>;
+    return <div className="container mx-auto p-4">Loading restaurant details...</div>;
   }
 
   return (
@@ -168,7 +189,7 @@ const RestaurantDetail = () => {
                 <option value="4">4</option>
                 <option value="5">5</option>
               </select>
-              {/* Optionally, display the stars as a preview */}
+              {/* Display stars as a preview */}
               <span className="ml-2">{renderStars(Number(newReview.rating))}</span>
             </div>
             <div className="mb-2">
