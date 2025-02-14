@@ -7,7 +7,6 @@ const UserProfile = ({ user }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Fetch reviews for the current user from the 'reviews' table.
   useEffect(() => {
     if (!user) return;
     const fetchUserReviews = async () => {
@@ -29,7 +28,6 @@ const UserProfile = ({ user }) => {
     fetchUserReviews();
   }, [user]);
 
-  // If no user is provided, ask them to sign in.
   if (!user) {
     return (
       <div className="container mx-auto p-4 text-center">
