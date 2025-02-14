@@ -65,10 +65,9 @@ const Home = ({
             <option value="none">No Grouping</option>
           </select>
         </div>
-
         <RestaurantList 
           restaurants={restaurants} 
-          onSelectRestaurant={onSelectRestaurant} // Should be called with restaurant.id
+          onSelectRestaurant={onSelectRestaurant}
           groupingOption={groupingOption}
           searchTerm={searchTerm}
           sortOption={sortOption}
@@ -80,41 +79,31 @@ const Home = ({
 };
 
 const App = () => {
-  // ---------------------------
-  // State for Restaurants Listing
-  // ---------------------------
+  // Restaurant Listing State
   const [restaurants, setRestaurants] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortOption, setSortOption] = useState('name');
   const [halalFilter, setHalalFilter] = useState('');
   const [groupingOption, setGroupingOption] = useState('location');
 
-  // ---------------------------
-  // State for Authentication
-  // ---------------------------
+  // Auth State
   const [user, setUser] = useState(null);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [authMode, setAuthMode] = useState("signin");
   const [showAuthModal, setShowAuthModal] = useState(false);
   
-  // ---------------------------
-  // State for New Restaurant Form
-  // ---------------------------
+  // New Restaurant Form Modal State
   const [showAddModal, setShowAddModal] = useState(false);
 
   const navigate = useNavigate();
 
-  // ---------------------------
-  // useEffect: Check Auth & Fetch Restaurants
-  // ---------------------------
+  // Fetch restaurants and user session on mount.
   useEffect(() => {
     const fetchRestaurants = async () => {
       try {
         const { data, error } = await supabase.from('restaurants').select('*');
-        if (error) {
-          throw error;
-        }
+        if (error) throw error;
         console.log("Fetched restaurants:", data);
         setRestaurants(data);
       } catch (error) {
@@ -125,9 +114,7 @@ const App = () => {
     const getSession = async () => {
       try {
         const { data: { session }, error } = await supabase.auth.getSession();
-        if (error) {
-          throw error;
-        }
+        if (error) throw error;
         console.log("Current session:", session);
         setUser(session?.user ?? null);
       } catch (error) {
@@ -135,28 +122,22 @@ const App = () => {
       }
     };
 
-    getSession();
     fetchRestaurants();
+    getSession();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       console.log("Auth state changed:", event, session);
       setUser(session?.user ?? null);
     });
 
-    return () => {
-      subscription.unsubscribe();
-    };
+    return () => subscription.unsubscribe();
   }, []);
 
-  // ---------------------------
   // Authentication Handlers
-  // ---------------------------
   const handleSignUp = async () => {
     try {
       const { data, error } = await supabase.auth.signUp({ email, password });
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
       console.log("Signed up user:", data);
     } catch (error) {
       console.error("Error signing up:", error.message);
@@ -166,9 +147,7 @@ const App = () => {
   const handleSignIn = async () => {
     try {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
       console.log("Signed in user:", data);
       setShowAuthModal(false);
     } catch (error) {
@@ -179,16 +158,14 @@ const App = () => {
   const handleSignOut = async () => {
     try {
       const { error } = await supabase.auth.signOut();
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
       console.log("Signed out successfully");
     } catch (error) {
       console.error("Error signing out:", error.message);
     }
   };
 
-  // Use this function when a restaurant is selected from the list.
+  // Handle restaurant selection from list.
   const handleSelectRestaurant = (restaurantOrId) => {
     const restaurantId =
       typeof restaurantOrId === 'object' && restaurantOrId !== null
@@ -209,7 +186,6 @@ const App = () => {
       {/* Add top padding to prevent header overlap */}
       <div className="pt-20">
         <Routes>
-          {/* Home Route */}
           <Route
             path="/"
             element={
@@ -227,12 +203,8 @@ const App = () => {
               />
             }
           />
-
-          {/* Restaurant Detail Route */}
-          <Route path="/restaurant/:id" element={<RestaurantDetail />} />
-
-          {/* User Profile Route */}
-<Route path="/profile" element={<UserProfile user={user} />} />
+          <Route path="/restaurant/:id" element={<RestaurantDetail user={user} />} />
+          <Route path="/profile" element={<UserProfile user={user} />} />
         </Routes>
       </div>
 
@@ -246,7 +218,7 @@ const App = () => {
           setEmail={setEmail} 
           password={password} 
           setPassword={setPassword} 
-          onClose={() => setShowAuthModal(false)} 
+          onClose={() => setShowAuthModal(false)}
           handleSignUp={handleSignUp}
           handleSignIn={handleSignIn}
         />
