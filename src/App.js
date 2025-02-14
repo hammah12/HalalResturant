@@ -232,7 +232,7 @@ const App = () => {
           <Route path="/restaurant/:id" element={<RestaurantDetail />} />
 
           {/* User Profile Route */}
-          <Route path="/profile" element={<UserProfile />} />
+<Route path="/profile" element={<UserProfile user={user} />} />
         </Routes>
       </div>
 
