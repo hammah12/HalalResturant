@@ -34,10 +34,8 @@ const renderStars = (rating) => {
   return stars;
 };
 
-const RestaurantDetail = () => {
-  // Extract the restaurant ID from the URL parameters.
+const RestaurantDetail = ({ user }) => {
   const { id } = useParams();
-  // Ensure id is always a string.
   const restaurantId = id ? String(id) : null;
   console.log("Restaurant ID:", restaurantId);
 
@@ -46,13 +44,11 @@ const RestaurantDetail = () => {
   const [newReview, setNewReview] = useState({ rating: '', comment: '' });
   const [error, setError] = useState(null);
 
-  // Fetch restaurant details using the provided id.
   useEffect(() => {
     if (!restaurantId) {
       setError("Invalid restaurant ID.");
       return;
     }
-
     const fetchRestaurant = async () => {
       const { data, error } = await supabase
         .from('restaurants')
@@ -66,14 +62,11 @@ const RestaurantDetail = () => {
         setRestaurant(data);
       }
     };
-
     fetchRestaurant();
   }, [restaurantId]);
 
-  // Fetch reviews for this restaurant.
   useEffect(() => {
     if (!restaurantId) return;
-
     const fetchReviews = async () => {
       const { data, error } = await supabase
         .from('reviews')
@@ -87,28 +80,29 @@ const RestaurantDetail = () => {
         setReviews(data);
       }
     };
-
     fetchReviews();
   }, [restaurantId]);
 
-  // Handle changes in the review form.
   const handleReviewChange = (e) => {
     const { name, value } = e.target;
     setNewReview((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Handle submission of a new review.
   const handleReviewSubmit = async (e) => {
     e.preventDefault();
+
+    if (!user) {
+      alert("Please sign in to add a review.");
+      return;
+    }
 
     const reviewToInsert = {
       restaurant_id: restaurantId,
       rating: newReview.rating,
       comment: newReview.comment,
-      // If you have the user's id available, you can also add: user_id: user.id
+      user_id: user.id,
     };
 
-    // Insert the new review and ask for the inserted row to be returned.
     const { data, error } = await supabase
       .from('reviews')
       .insert([reviewToInsert], { returning: 'representation' });
@@ -138,7 +132,6 @@ const RestaurantDetail = () => {
     }
   };
 
-  // If an error occurred, display it.
   if (error) {
     return (
       <div className="container mx-auto p-4 text-center text-red-500">
@@ -146,15 +139,12 @@ const RestaurantDetail = () => {
       </div>
     );
   }
-
-  // If restaurant details have not loaded yet, show a loading indicator.
   if (!restaurant) {
     return <div className="container mx-auto p-4">Loading restaurant details...</div>;
   }
 
   return (
     <div className="restaurant-detail container mx-auto p-4">
-      {/* Restaurant Information */}
       <div className="restaurant-info mb-8">
         <h1 className="text-3xl font-bold mb-2">{restaurant.name}</h1>
         {restaurant.image && (
@@ -165,19 +155,12 @@ const RestaurantDetail = () => {
           />
         )}
         <p className="mb-2">{restaurant.description}</p>
-        <p className="mb-1">
-          <strong>Address:</strong> {restaurant.address}
-        </p>
-        <p className="mb-1">
-          <strong>Rating:</strong> {restaurant.rating}
-        </p>
+        <p className="mb-1"><strong>Address:</strong> {restaurant.address}</p>
+        <p className="mb-1"><strong>Rating:</strong> {restaurant.rating}</p>
       </div>
 
-      {/* Reviews Section */}
       <div className="reviews-section">
         <h2 className="text-2xl font-semibold mb-4">Reviews</h2>
-
-        {/* Review Form */}
         <div className="review-form mb-6 p-4 border rounded shadow bg-white">
           <h3 className="text-xl font-medium mb-2">Add a Review</h3>
           <form onSubmit={handleReviewSubmit}>
@@ -197,10 +180,7 @@ const RestaurantDetail = () => {
                 <option value="4">4</option>
                 <option value="5">5</option>
               </select>
-              {/* Display stars as a preview */}
-              <span className="ml-2">
-                {renderStars(Number(newReview.rating))}
-              </span>
+              <span className="ml-2">{renderStars(Number(newReview.rating))}</span>
             </div>
             <div className="mb-2">
               <label className="block mb-1">Comment:</label>
@@ -220,17 +200,12 @@ const RestaurantDetail = () => {
             </button>
           </form>
         </div>
-
-        {/* Display Reviews */}
         <div className="reviews-list space-y-4">
           {reviews.length === 0 ? (
             <p>No reviews yet. Be the first to review!</p>
           ) : (
             reviews.map((review) => (
-              <div
-                key={review.id}
-                className="review p-4 border rounded bg-white shadow"
-              >
+              <div key={review.id} className="review p-4 border rounded bg-white shadow">
                 <div className="flex items-center mb-2">
                   <span className="mr-2 font-semibold">Rating:</span>
                   {renderStars(Number(review.rating))}
